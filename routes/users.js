@@ -3,7 +3,37 @@ var router = express.Router();
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+  req.app.locals.users.find().toArray()
+    .then(result => {
+      res.setHeader('Content-Type', 'application/json');
+      res.send(result);
+    })
+    .catch(error => {
+      console.error(error);
+    });
 });
+
+// Registers new user
+// API request should have 'username' and 'email' in body
+
+router.post('/', function(req, res, next) {
+  const newUser = {
+    username: req.body.username,
+    email: req.body.email,
+    mangoCount: 0,
+    totalMangosEarned: 0,
+    dateJoined: Date.now()
+  }; // Make sure there's no bad stuff in body
+
+  req.app.locals.users.insertOne(newUser).then(result => {
+    res.setHeader('Content-Type', 'application/json');
+
+    newUser._id = result.insertedId;
+    res.send(newUser);
+  }).catch(error => {
+    console.error(error);
+  });
+})
+
 
 module.exports = router;
