@@ -1,4 +1,4 @@
-export const USERS = [
+const USERS = [
   {
     username: "patrickstar", 
     email: 'patrickstar@bikinibottom.com',
@@ -32,3 +32,5 @@ export const USERS = [
     dateJoined: new Date(),
   }
 ];
+
+exports.USERS = USERS;
