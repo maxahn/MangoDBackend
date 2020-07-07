@@ -41,12 +41,11 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-
 // ---------- MongoDB connection ----------
 
 const MongoClient = require('mongodb').MongoClient
 
-let uri = "mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PASS + process.env.DB_ADDR + process.env.DB_NAME + "?retryWrites=true&w=majority";
+let uri = process.env.DB_URI;
 
 MongoClient.connect(uri, {
   useNewUrlParser: true,
@@ -56,7 +55,7 @@ MongoClient.connect(uri, {
     app.locals.db = db;
 
     // SET UP COLLECTION REFERENCES HERE
-    app.locals.messages = db.collection('messages');
+    app.locals.users = db.collection('users');
 
     console.log("Connected to MongoDB!");
   }).catch(error => {
