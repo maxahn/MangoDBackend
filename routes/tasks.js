@@ -1,4 +1,5 @@
 const express = require('express');
+const app = require('../app');
 const router = express.Router();
 const ObjectID = require("mongodb").ObjectID;
 
@@ -53,7 +54,32 @@ router.post('/:user_id', function(req, res, next) {
   }).catch(err => {
     console.log(err);
     res.status(503).end();
-  })
+  });
+});
+
+/* PUT task: updates indiscriminately the specified fields, 
+whether or not they actually changed */ 
+
+router.put('/:user_id/:task_id', (req, res, next) => {
+  const user_id = ObjectID(req.params.user_id);
+  const task_id = ObjectID(req.params.task_id);
+  const { description, isDone, isPublic, dueDate } = req.body;
+  req.app.locals.tasks.updateOne(
+    { _id: task_id, user_id },
+    {
+      $set: {
+        description, 
+        isDone,
+        isPublic,
+        dueDate
+      }
+    }
+  ).then((result) => {
+    res.status(200).end();
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
 });
 
 module.exports = router;
