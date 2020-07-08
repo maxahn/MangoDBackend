@@ -31,12 +31,35 @@ router.get('/:id', function(req, res, next) {
 });
 
 
+// Get a user by auth0_id
+router.get('/auth0/:auth0_id', function(req, res, next) {
+  let auth0_id = req.params.auth0_id;
+
+  req.app.locals.users.findOne({
+    auth0_id: auth0_id
+  })
+    .then(result => {
+      res.setHeader('Content-Type', 'application/json');
+
+      if (!result) {
+        res.status(400).send();
+      } else {
+        res.send(result);
+      }
+    })
+    .catch(error => {
+      console.error(error);
+    });
+});
+
 // Registers new user
 // API request should have 'username' and 'email' in body
 router.post('/', function(req, res, next) {
   const newUser = {
+    auth0_id: req.body.auth0_id,
     username: req.body.username,
     email: req.body.email,
+    avatar: req.body.avatar,
     mangoCount: 0,
     totalMangosEarned: 0,
     dateJoined: Date.now()
