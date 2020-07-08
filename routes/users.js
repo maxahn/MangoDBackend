@@ -42,7 +42,9 @@ router.get('/auth0/:auth0_id', function(req, res, next) {
       res.setHeader('Content-Type', 'application/json');
 
       if (!result) {
-        res.status(400).send();
+        // If mongoDB findOne doesn't find a user of this auth0_id, it will return null.
+        // So return an error
+        res.status(404).send();
       } else {
         res.send(result);
       }
