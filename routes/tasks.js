@@ -56,26 +56,28 @@ router.post('/:user_id', function(req, res, next) {
   });
 });
 
-/* PUT task: updates indiscriminately the specified fields, 
-whether or not they actually changed */ 
+/* PUT task: updates task of the specified fields */
 
 router.put('/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
-  // WARNING: need to make sure client sends all of these fields,
-  // or they may be set to null
-  const { description, isDone, isPublic, dueDate } = req.body;
+  const { body } = req; 
+  const validKeys = ["description", "isDone", "isPublic", "dueDate"];
+  const keys = Object.keys(req.body);
+  const updatedTask = {};
+  for (let key of validKeys) {
+    if (keys.includes(key)) {
+      updatedTask[key] = body[key];
+    }
+  }
   req.app.locals.tasks.updateOne(
     { _id: task_id },
     {
       $set: {
-        description, 
-        isDone,
-        isPublic,
-        dueDate
+        ...updatedTask
       }
     }
   ).then((result) => {
-    res.status(200).end();
+    res.status(200).send(updatedTask);
   }).catch(err => {
     console.error(err);
     res.status(503).end();
@@ -166,7 +168,7 @@ router.post('/:task_id/subTasks', (req, res, next) => {
 // untested due to sending ObjectID in body
 router.post('/:task_id/mangoTransactions', (req, res, next) => { 
   const task_id = ObjectID(req.params.task_id);
-  const { user_id, mangoCount, totalMangoCount } = req.body; 
+  const { user_id, mangoCount } = req.body; 
   const newMangoTransaction = {
     user_id,
     mangoCount, 
@@ -175,9 +177,6 @@ router.post('/:task_id/mangoTransactions', (req, res, next) => {
   req.app.locals.tasks.updateOne(
     { _id: task_id },
     { 
-      "$set": {
-        mangosGiven: totalMangoCount
-      },
       "$push": {
         "mangoTransactions":  newMangoTransaction
       }
