@@ -15,6 +15,28 @@ router.get('/', function(req, res, next) {
     });
 });
 
+/* GET tasks listing for feed, aggregated with user info. */
+router.get('/feed', function(req, res, next) {
+ req.app.locals.tasks.aggregate([
+   { $lookup:
+       {
+         from: 'users',
+         localField: 'user_id',
+         foreignField: '_id',
+         as: 'userDetails'
+       }
+   }
+ ]).toArray()
+   .then(result => {
+     res.setHeader('Content-Type', 'application/json');
+     res.status(200).send(JSON.stringify(result));
+   })
+   .catch(error => {
+     console.error(error);
+   })
+});
+
+
 
 /* GET tasks by User */
 router.get('/:user_id', function(req, res, next) {
