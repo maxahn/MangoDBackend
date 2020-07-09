@@ -78,13 +78,31 @@ router.post('/', function(req, res, next) {
 });
 
 /* PUT user: add clap to  */
-router.put('/feed/:task_id', (req, res, next) => {
+router.put('/feed/claps/:task_id', (req, res, next) => {
   const { value, user_id } = req.body;
   const userID = ObjectID(user_id);
   req.app.locals.users.updateOne(
     { _id: userID },
     {
       $inc: { totalClapsEarned: value }
+    }
+  ).then((result) => {
+    res.status(200).end();
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+
+});
+
+/* PUT user: add clap to  */
+router.put('/feed/mangos/:task_id', (req, res, next) => {
+  const { numMango, user_id } = req.body;
+  const userID = ObjectID(user_id);
+  req.app.locals.users.updateOne(
+    { _id: userID },
+    {
+      $inc: { totalMangosEarned: numMango, mangoCount: numMango }
     }
   ).then((result) => {
     res.status(200).end();

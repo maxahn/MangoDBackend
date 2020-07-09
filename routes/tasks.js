@@ -37,7 +37,7 @@ router.get('/feed', function(req, res, next) {
 });
 
 /* PUT task: add clap to task */
-router.put('/feed/:task_id', (req, res, next) => {
+router.put('/feed/claps/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
   const { value, donor } = req.body;
   const donor_id = ObjectID(donor);
@@ -48,6 +48,33 @@ router.put('/feed/:task_id', (req, res, next) => {
     },
     {
       $push : { givenClaps: donor_id }
+    }
+  ).then((result) => {
+    res.status(200).end();
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+
+});
+
+/* PUT task: add mangos to task */
+router.put('/feed/mangos/:task_id', (req, res, next) => {
+  const task_id = ObjectID(req.params.task_id);
+  const { numMango, donor } = req.body;
+  const donor_id = ObjectID(donor);
+  const newMangoTransaction = {
+    user_id: donor_id,
+    mangoCount: numMango,
+    timestamp: new Date()
+  };
+  req.app.locals.tasks.updateOne(
+    { _id: task_id },
+    {
+      $inc: { mangosReceived: numMango }
+    },
+    {
+      $push : { mangoTransactions: newMangoTransaction }
     }
   ).then((result) => {
     res.status(200).end();
