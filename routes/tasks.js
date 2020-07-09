@@ -1,5 +1,4 @@
 const express = require('express');
-const app = require('../app');
 const router = express.Router();
 const ObjectID = require("mongodb").ObjectID;
 
@@ -44,7 +43,6 @@ router.post('/:user_id', function(req, res, next) {
     mangosGiven: 0,
     subTasks: [],
     isDone: false,
-    // NOTE: maybe timestamp should be created on the client so it will be congruent with the user's timezone 
     timestamp: new Date() 
   };
 
