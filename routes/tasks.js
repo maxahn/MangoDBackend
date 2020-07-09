@@ -36,6 +36,27 @@ router.get('/feed', function(req, res, next) {
    })
 });
 
+/* PUT task: add clap to task */
+router.put('/feed/:task_id', (req, res, next) => {
+  const task_id = ObjectID(req.params.task_id);
+  const { value, donor } = req.body;
+  const donor_id = ObjectID(donor);
+  req.app.locals.tasks.updateOne(
+    { _id: task_id },
+    {
+      $inc: { clapsReceived: value }
+    },
+    {
+      $push : { givenClaps: donor_id }
+    }
+  ).then((result) => {
+    res.status(200).end();
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+
+});
 
 
 /* GET tasks by User */
@@ -106,6 +127,7 @@ router.put('/:task_id', (req, res, next) => {
     res.status(503).end();
   });
 });
+
 
 router.get('/:task_id/givenClaps', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
