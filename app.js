@@ -8,12 +8,14 @@ require('dotenv').config()
 
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
+let tasksRouter = require('./routes/tasks');
 
 let app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
+app.set('port', process.env.PORT);
 
 app.use(cors());
 app.use(logger('dev'));
@@ -24,6 +26,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/tasks', tasksRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -56,6 +59,7 @@ MongoClient.connect(uri, {
 
     // SET UP COLLECTION REFERENCES HERE
     app.locals.users = db.collection('users');
+    app.locals.tasks = db.collection('tasks');
 
     console.log("Connected to MongoDB!");
   }).catch(error => {

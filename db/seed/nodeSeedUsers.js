@@ -4,6 +4,7 @@ const { USERS } = require("./dummyUsers");
 const path = require("../../node_modules/path");
 const envPath = path.join(__dirname, '../../.env');
 require("../../node_modules/dotenv").config({path: envPath});
+//require("dotenv").config();
 
 console.log(`DB_URI: ${process.env.DB_URI}`);
 
