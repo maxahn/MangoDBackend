@@ -1,10 +1,10 @@
 const { ObjectID } = require("../../node_modules/mongodb/index");
 const TASKS = [
   {
-    title: "Create dummy data for Task component",
-    description: "For 436I",
+    description: "Create dummy data for Task component",
     givenClaps: [],
     mangoTransactions: [],
+    mangosGiven: 0,
     subTasks: [],
     dueDate: new Date(),
     isDone: false,
@@ -12,10 +12,10 @@ const TASKS = [
     timestamp: new Date(),
   },
   {
-    title: "Create task component",
-    description: "For 436I",
+    description: "Create task component",
     givenClaps: [], // id of users who has given claps
     mangoTransactions: [],
+    mangosGiven: 0,
     subTasks: [
       {
         id: new ObjectID(), 
@@ -39,10 +39,10 @@ const TASKS = [
     timestamp: new Date(),
   },
   {
-    title: "Assassinate Albus Dumbledore",
-    description: "For 436I",
+    description: "Assassinate Albus Dumbledore",
     givenClaps: [],
     mangoTransactions: [],
+    mangosGiven: 0,
     subTasks: [
       {
         id: new ObjectID(), 
