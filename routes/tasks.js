@@ -1,5 +1,4 @@
 const express = require('express');
-const app = require('../app');
 const router = express.Router();
 const ObjectID = require("mongodb").ObjectID;
 
@@ -14,6 +13,7 @@ router.get('/', function(req, res, next) {
       console.error(error);
     });
 });
+
 
 /* GET tasks listing for feed, aggregated with user info. */
 router.get('/feed', function(req, res, next) {
@@ -90,22 +90,22 @@ router.put('/feed/mangos/:task_id', (req, res, next) => {
 router.get('/:user_id', function(req, res, next) {
   const user_id  = ObjectID(req.params.user_id);
   req.app.locals.tasks.find({user_id}).toArray()
-    .then(result => {
-      res.setHeader('Content-Type', 'application/json');
-      res.status(200).send(result);
-    })
-    .catch(err => {
-      res.status(503).end();
-      console.error(err);
-    });
+  .then(result => {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).send(result);
+  })
+  .catch(err => {
+    res.status(503).end();
+    console.error(err);
+  });
 });
 
 /* POST new task, returns new created document ID */
 router.post('/:user_id', function(req, res, next) {
-  const user_id = ObjectID(req.params.user_id);
+  const user_id = ObjectID(req.params.user_id); 
   const { description, isPublic, dueDate } = req.body;
-  const newTask = {
-    description,
+  const newTask = { 
+    description, 
     isPublic,
     dueDate,
     user_id,
@@ -116,7 +116,7 @@ router.post('/:user_id', function(req, res, next) {
     subTasks: [],
     isDone: false,
     // NOTE: maybe timestamp should be created on the client so it will be congruent with the user's timezone
-    timestamp: new Date()
+    timestamp: new Date();
   };
 
   req.app.locals.tasks.insertOne(newTask).then((result) => {
@@ -129,8 +129,9 @@ router.post('/:user_id', function(req, res, next) {
   });
 });
 
-/* PUT task: updates indiscriminately the specified fields,
-whether or not they actually changed */
+
+/* PUT task: updates indiscriminately the specified fields, 
+whether or not they actually changed */ 
 
 router.put('/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
@@ -141,7 +142,7 @@ router.put('/:task_id', (req, res, next) => {
     { _id: task_id },
     {
       $set: {
-        description,
+        description, 
         isDone,
         isPublic,
         dueDate
@@ -156,7 +157,7 @@ router.put('/:task_id', (req, res, next) => {
 });
 
 
-router.get('/:task_id/givenClaps', (req, res, next) => {
+router.get('/:task_id/givenClaps', (req, res, next) => { 
   const task_id = ObjectID(req.params.task_id);
   req.app.locals.tasks.findOne(
     { _id: task_id },
@@ -169,7 +170,8 @@ router.get('/:task_id/givenClaps', (req, res, next) => {
   });
 });
 
-router.get('/:task_id/subTasks', (req, res, next) => {
+
+router.get('/:task_id/subTasks', (req, res, next) => { 
   const task_id = ObjectID(req.params.task_id);
   req.app.locals.tasks.findOne(
     { _id: task_id },
@@ -182,7 +184,8 @@ router.get('/:task_id/subTasks', (req, res, next) => {
   });
 });
 
-router.get('/:task_id/mangoTransactions', (req, res, next) => {
+
+router.get('/:task_id/mangoTransactions', (req, res, next) => { 
   const task_id = ObjectID(req.params.task_id);
   req.app.locals.tasks.findOne(
     { _id: task_id },
@@ -196,14 +199,14 @@ router.get('/:task_id/mangoTransactions', (req, res, next) => {
 });
 
 // untested due to sending ObjectID in body
-router.post('/:task_id/givenClaps', (req, res, next) => {
+router.post('/:task_id/givenClaps', (req, res, next) => { 
   const task_id = ObjectID(req.params.task_id);
   const { user_id } = req.body;
   req.app.locals.tasks.updateOne(
     { _id: task_id },
-    {
+    { 
       "$push": {
-        "givenClaps": user_id
+        "givenClaps": user_id 
       }
     }
   ).then(() => {
@@ -214,9 +217,10 @@ router.post('/:task_id/givenClaps', (req, res, next) => {
   });
 });
 
-router.post('/:task_id/subTasks', (req, res, next) => {
+
+router.post('/:task_id/subTasks', (req, res, next) => { 
   const task_id = ObjectID(req.params.task_id);
-  const { description } = req.body;
+  const { description } = req.body; 
   const newSubTask = {
     id: new ObjectID(),
     description,
@@ -224,7 +228,7 @@ router.post('/:task_id/subTasks', (req, res, next) => {
   };
   req.app.locals.tasks.updateOne(
     { _id: task_id },
-    {
+    { 
       "$push": {
         "subTasks":  newSubTask
       }
@@ -238,19 +242,19 @@ router.post('/:task_id/subTasks', (req, res, next) => {
 });
 
 // untested due to sending ObjectID in body
-router.post('/:task_id/mangoTransactions', (req, res, next) => {
+router.post('/:task_id/mangoTransactions', (req, res, next) => { 
   const task_id = ObjectID(req.params.task_id);
-  const { user_id, mangoCount, totalMangoCount } = req.body;
+  const { user_id, mangoCount, totalMangoCount } = req.body; 
   const newMangoTransaction = {
     user_id,
-    mangoCount,
+    mangoCount, 
     timestamp: new Date()
   };
   req.app.locals.tasks.updateOne(
     { _id: task_id },
-    {
+    { 
       "$set": {
-        mangosReceived: totalMangoCount
+        mangosGiven: totalMangoCount
       },
       "$push": {
         "mangoTransactions":  newMangoTransaction
