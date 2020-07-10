@@ -47,9 +47,9 @@ router.post('/:user_id', function(req, res, next) {
   };
 
   req.app.locals.tasks.insertOne(newTask).then((result) => {
-    const { insertedId } = result;
-    console.dir(insertedId);
-    res.status(200).send(insertedId);
+    const { ops } = result;
+    console.dir(ops[0]);
+    res.status(200).send(ops[0]);
   }).catch(err => {
     console.log(err);
     res.status(503).end();
