@@ -3,7 +3,7 @@ const router = express.Router();
 const ObjectID = require("mongodb").ObjectID;
 const multer  = require('multer');
 const upload = multer({ dest: 'uploads/' });
-//const Binary = require("mongodb").Binary;
+const Binary = require("mongodb").Binary;
 //const fs = require('fs');
 
 
@@ -120,7 +120,7 @@ router.put('/feed/mangos/:task_id', (req, res, next) => {
 /* PUT user: update user's avatar  */
 router.put('/profile/avatar/:user_id', upload.single('image'), (req, res, next) => {
    const user_id = ObjectID(req.params.user_id);
-   //const { fd } = req.body;
+   const { image } = req.body;
    //const img = fd.get("image");
    console.log(req.body);
    //let bitmap = fs.readFileSync(image);
@@ -130,7 +130,7 @@ router.put('/profile/avatar/:user_id', upload.single('image'), (req, res, next) 
    req.app.locals.users.updateOne(
     { _id: user_id },
     {
-      $set: { avatar: "temp" }
+      $set: { avatar: image }
     }
   ).then((result) => {
     res.status(200).end();
