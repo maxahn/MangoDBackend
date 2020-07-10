@@ -67,7 +67,7 @@ router.post('/', function(req, res, next) {
     avatar: req.body.avatar,
     mangoCount: 0,
     totalMangosEarned: 0,
-    dateJoined: Date.now()
+    dateJoined: new Date()
   }; // Make sure there's no bad stuff in body
 
   req.app.locals.users.insertOne(newUser).then(result => {
