@@ -115,8 +115,7 @@ router.post('/:user_id', function(req, res, next) {
     mangosReceived: 0,
     subTasks: [],
     isDone: false,
-    // NOTE: maybe timestamp should be created on the client so it will be congruent with the user's timezone
-    timestamp: new Date();
+    timestamp: new Date()
   };
 
   req.app.locals.tasks.insertOne(newTask).then((result) => {
