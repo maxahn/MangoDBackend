@@ -74,7 +74,7 @@ router.put('/feed/mangos/:task_id', (req, res, next) => {
       $inc: { mangosReceived: numMango }
     },
     {
-      $push : { "mangoTransactions": newMangoTransaction }
+      "$push" : { "mangoTransactions": newMangoTransaction }
     }
   ).then((result) => {
     res.status(200).end();
