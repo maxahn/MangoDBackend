@@ -66,7 +66,7 @@ router.put('/feed/mangos/:task_id', (req, res, next) => {
   const newMangoTransaction = {
     user_id: donor_id,
     mangoCount: numMango,
-    timestamp: new Date()
+    timestamp: new Date.now()
   };
   req.app.locals.tasks.updateOne(
     { _id: task_id },
@@ -115,7 +115,7 @@ router.post('/:user_id', function(req, res, next) {
     mangosReceived: 0,
     subTasks: [],
     isDone: false,
-    timestamp: new Date()
+    timestamp: new Date.now()
   };
 
   req.app.locals.tasks.insertOne(newTask).then((result) => {
@@ -247,7 +247,7 @@ router.post('/:task_id/mangoTransactions', (req, res, next) => {
   const newMangoTransaction = {
     user_id,
     mangoCount, 
-    timestamp: new Date()
+    timestamp: new Date.now()
   };
   req.app.locals.tasks.updateOne(
     { _id: task_id },
