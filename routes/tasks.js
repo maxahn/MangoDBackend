@@ -204,8 +204,8 @@ router.post('/:task_id/givenClaps', (req, res, next) => {
   req.app.locals.tasks.updateOne(
     { _id: task_id },
     { 
-      "$push": {
-        "givenClaps": user_id 
+      $push: {
+        givenClaps: user_id
       }
     }
   ).then(() => {
@@ -228,8 +228,8 @@ router.post('/:task_id/subTasks', (req, res, next) => {
   req.app.locals.tasks.updateOne(
     { _id: task_id },
     { 
-      "$push": {
-        "subTasks":  newSubTask
+      $push: {
+        subTasks:  newSubTask
       }
     }
   ).then(() => {
@@ -252,11 +252,11 @@ router.post('/:task_id/mangoTransactions', (req, res, next) => {
   req.app.locals.tasks.updateOne(
     { _id: task_id },
     { 
-      "$set": {
+      $set: {
         mangosGiven: totalMangoCount
       },
-      "$push": {
-        "mangoTransactions":  newMangoTransaction
+      $push: {
+        mangoTransactions:  newMangoTransaction
       }
     }
   ).then(() => {
