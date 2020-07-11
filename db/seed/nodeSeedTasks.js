@@ -25,7 +25,7 @@ const setMangoTransactions = (tasks, users) => {
         mangoCount = Math.round(mangoCount);
         task.mangoTransactions.push({
           user_id: user._id,
-          mangoCount, 
+          mangoCount,
           timestamp: new Date()
         });
       }
@@ -79,4 +79,3 @@ MongoClient.connect(process.env.DB_URI, {
   }).catch(error => {
   console.error(error);
 });
-
