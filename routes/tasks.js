@@ -122,7 +122,6 @@ router.post('/:user_id', function(req, res, next) {
     const { ops } = result;
     res.status(200).send(ops[0]);
   }).catch(err => {
-    console.log(err);
     res.status(503).end();
   });
 });
@@ -134,7 +133,7 @@ router.put('/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
   const { body } = req; 
   const validKeys = ["description", "isDone", "isPublic", "dueDate"];
-  const keys = Object.keys(req.body);
+  const keys = Object.keys(body);
   const updatedTask = {};
   for (let key of validKeys) {
     if (keys.includes(key)) {
@@ -237,7 +236,7 @@ router.post('/:task_id/subTasks', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
   const { description } = req.body; 
   const newSubTask = {
-    id: new ObjectID(),
+    _id: new ObjectID(),
     description,
     isDone: false
   };
