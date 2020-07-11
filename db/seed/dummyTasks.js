@@ -4,7 +4,6 @@ const TASKS = [
     description: "Create dummy data for Task component",
     givenClaps: [],
     mangoTransactions: [],
-    mangosGiven: 0,
     subTasks: [],
     dueDate: new Date(),
     isDone: false,
@@ -15,20 +14,19 @@ const TASKS = [
     description: "Create task component",
     givenClaps: [], // id of users who has given claps
     mangoTransactions: [],
-    mangosGiven: 0,
     subTasks: [
       {
-        id: new ObjectID(), 
+        id: new ObjectID(),
         description: "Talk to group members",
         isDone: true,
       },
       {
-        id: new ObjectID(), 
+        id: new ObjectID(),
         description: "watch a mongodb video",
         isDone: false,
       },
       {
-        id: new ObjectID(), 
+        id: new ObjectID(),
         description: "create the data",
         isDone: false,
       },
@@ -42,25 +40,24 @@ const TASKS = [
     description: "Assassinate Albus Dumbledore",
     givenClaps: [],
     mangoTransactions: [],
-    mangosGiven: 0,
     subTasks: [
       {
-        id: new ObjectID(), 
+        id: new ObjectID(),
         description: "Offer headmaster a drink",
         isDone: true,
       },
       {
-        id: new ObjectID(), 
+        id: new ObjectID(),
         description: "make him finish the drink",
         isDone: true,
       },
       {
-        id: new ObjectID(), 
+        id: new ObjectID(),
         description: "push him off a tower?",
         isDone: false,
       },
       {
-        id: new ObjectID(), 
+        id: new ObjectID(),
         description: "nah abra kadabra him",
         isDone: false,
       },
