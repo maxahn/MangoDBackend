@@ -14,6 +14,7 @@ router.get('/', function(req, res, next) {
     })
     .catch(error => {
       console.error(error);
+      res.status(503).end();
     });
 });
 
@@ -31,6 +32,7 @@ router.get('/:id', function(req, res, next) {
     })
     .catch(error => {
       console.error(error);
+      res.status(503).end();
     });
 });
 
@@ -55,6 +57,7 @@ router.get('/auth0/:auth0_id', function(req, res, next) {
     })
     .catch(error => {
       console.error(error);
+      res.status(503).end();
     });
 });
 
@@ -81,6 +84,7 @@ router.post('/', function(req, res, next) {
     res.send(newUser);
   }).catch(error => {
     console.error(error);
+    res.status(503).end();
   });
 });
 
