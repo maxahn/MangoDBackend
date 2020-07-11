@@ -18,7 +18,6 @@ router.get('/', function(req, res, next) {
     });
 });
 
-
 // Get a user by id
 router.get('/:id', function(req, res, next) {
   let id = ObjectID(req.params.id);
@@ -35,7 +34,6 @@ router.get('/:id', function(req, res, next) {
       res.status(503).end();
     });
 });
-
 
 // Get a user by auth0_id
 router.get('/auth0/:auth0_id', function(req, res, next) {
@@ -60,7 +58,6 @@ router.get('/auth0/:auth0_id', function(req, res, next) {
       res.status(503).end();
     });
 });
-
 
 // Registers new user
 // API request should have 'username' and 'email' in body
