@@ -184,21 +184,6 @@ router.get('/:task_id/givenClaps', (req, res, next) => {
   });
 });
 
-
-router.get('/:task_id/subTasks', (req, res, next) => { 
-  const task_id = ObjectID(req.params.task_id);
-  req.app.locals.tasks.findOne(
-    { _id: task_id },
-    { subTasks: 1 }
-  ).then(task => {
-    res.status(200).send(task.subTasks);
-  }).catch(err => {
-    console.error(err);
-    res.status(503).end();
-  });
-});
-
-
 router.get('/:task_id/mangoTransactions', (req, res, next) => { 
   const task_id = ObjectID(req.params.task_id);
   req.app.locals.tasks.findOne(
@@ -231,9 +216,21 @@ router.post('/:task_id/givenClaps', (req, res, next) => {
   });
 });
 
+router.get('/:taskID/subTasks', (req, res, next) => { 
+  const taskID = ObjectID(req.params.taskID);
+  req.app.locals.tasks.findOne(
+    { _id: taskID },
+    { subTasks: 1 }
+  ).then(task => {
+    res.status(200).send(task.subTasks);
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
 
-router.post('/:task_id/subTasks', (req, res, next) => { 
-  const task_id = ObjectID(req.params.task_id);
+router.post('/:taskID/subTasks', (req, res, next) => { 
+  const taskID = ObjectID(req.params.taskID);
   const { description } = req.body; 
   const newSubTask = {
     _id: new ObjectID(),
@@ -241,7 +238,7 @@ router.post('/:task_id/subTasks', (req, res, next) => {
     isDone: false
   };
   req.app.locals.tasks.updateOne(
-    { _id: task_id },
+    { _id: taskID },
     { 
       $push: {
         subTasks:  newSubTask
@@ -249,6 +246,46 @@ router.post('/:task_id/subTasks', (req, res, next) => {
     }
   ).then(() => {
     res.status(200).send(newSubTask);
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
+
+router.put('/:taskID/subTasks/:subTaskID', (req, res, next) => {
+  const taskID = ObjectID(req.params.taskID);
+  const subTaskID = ObjectID(req.params.subTaskID);
+  const { isDone, description } = req.body;
+  req.app.locals.tasks.updateOne(
+    { _id: taskID, "subTasks._id": subTaskID },
+    {
+      $set: 
+      { 
+        "subTasks.$.isDone" : isDone, 
+        "subTasks.$.description" : description
+      }
+    }
+  ).then((result) => {
+    res.status(200).end();
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+
+});
+
+router.delete('/:taskID/subTasks/:subTaskID', (req, res, next) => { 
+  const taskID = ObjectID(req.params.taskID);
+  const subTaskID = ObjectID(req.params.subTaskID);
+  req.app.locals.tasks.update(
+    { _id: taskID },
+    { 
+      $pull: {
+        subTasks:  {_id: subTaskID}
+      }
+    },
+  ).then((result) => {
+    res.status(200).send(result);
   }).catch(err => {
     console.error(err);
     res.status(503).end();
