@@ -4,7 +4,6 @@ const TASKS = [
     description: "Create dummy data for Task component",
     givenClaps: [],
     mangoTransactions: [],
-    mangosGiven: 0,
     subTasks: [],
     dueDate: new Date(),
     isDone: false,
@@ -15,7 +14,6 @@ const TASKS = [
     description: "Create task component",
     givenClaps: [], // id of users who has given claps
     mangoTransactions: [],
-    mangosGiven: 0,
     subTasks: [
       {
         id: new ObjectID(),
@@ -42,7 +40,6 @@ const TASKS = [
     description: "Assassinate Albus Dumbledore",
     givenClaps: [],
     mangoTransactions: [],
-    mangosGiven: 0,
     subTasks: [
       {
         id: new ObjectID(),

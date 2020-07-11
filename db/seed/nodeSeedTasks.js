@@ -19,12 +19,10 @@ const maxMangos = 20;
 const minMangos = 1;
 const setMangoTransactions = (tasks, users) => {
   for (let task of tasks) {
-    let mangosGiven = 0;
     for (let user of users) {
       if (task.isPublic) {
         let mangoCount = Math.random() * (maxMangos - minMangos) + minMangos;
         mangoCount = Math.round(mangoCount);
-        mangosGiven += mangoCount;
         task.mangoTransactions.push({
           user_id: user._id,
           mangoCount,
@@ -32,7 +30,6 @@ const setMangoTransactions = (tasks, users) => {
         });
       }
     }
-    task.mangosGiven = mangosGiven;
   }
 }
 
