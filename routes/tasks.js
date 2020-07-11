@@ -9,8 +9,8 @@ router.get('/', function(req, res, next) {
       res.setHeader('Content-Type', 'application/json');
       res.status(200).send(result);
     })
-    .catch(error => {
-      console.error(error);
+    .catch(err => {
+      console.error(err);
     });
 });
 
@@ -120,7 +120,6 @@ router.post('/:user_id', function(req, res, next) {
 
   req.app.locals.tasks.insertOne(newTask).then((result) => {
     const { ops } = result;
-    console.dir(ops[0]);
     res.status(200).send(ops[0]);
   }).catch(err => {
     console.log(err);
@@ -150,7 +149,22 @@ router.put('/:task_id', (req, res, next) => {
       }
     }
   ).then((result) => {
-    res.status(200).send(updatedTask);
+    res.status(200).send(result);
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
+
+router.delete('/:task_id', (req, res, next) => {
+  const task_id = ObjectID(req.params.task_id);
+  req.app.locals.tasks.deleteOne(
+    { _id: task_id },
+    {
+      justOne: true
+    }
+  ).then((result) => {
+    res.status(200).send(result);
   }).catch(err => {
     console.error(err);
     res.status(503).end();
