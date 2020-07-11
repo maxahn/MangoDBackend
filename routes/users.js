@@ -67,6 +67,8 @@ router.post('/', function(req, res, next) {
     avatar: req.body.avatar,
     mangoCount: 0,
     totalMangosEarned: 0,
+    totalClapsEarned: 0,
+    tasksCompleted: 0,
     dateJoined: Date.now()
   }; // Make sure there's no bad stuff in body
 
