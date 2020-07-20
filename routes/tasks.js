@@ -19,7 +19,13 @@ router.get('/', function(req, res, next) {
 router.get('/feed', function(req, res, next) {
  req.app.locals.tasks.aggregate([
    {
-   $match: { "isPublic": true }
+     $match: { "isPublic": true }
+   },
+   {
+     $sort: { timestamp: -1 }
+   },
+   {
+     $limit: 20
    },
    { $lookup:
        {
@@ -28,9 +34,6 @@ router.get('/feed', function(req, res, next) {
          foreignField: '_id',
          as: 'userDetails'
        }
-   },
-   {
-     $sort: { timestamp: -1 }
    }
  ]).toArray()
    .then(result => {
