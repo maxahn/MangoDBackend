@@ -18,6 +18,9 @@ router.get('/', function(req, res, next) {
 /* GET tasks listing for feed, aggregated with user info. */
 router.get('/feed', function(req, res, next) {
  req.app.locals.tasks.aggregate([
+   {
+   $match: { "isPublic": true }
+   },
    { $lookup:
        {
          from: 'users',
