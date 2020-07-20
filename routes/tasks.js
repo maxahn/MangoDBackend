@@ -50,21 +50,37 @@ router.put('/feed/claps/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
   const { value, donor } = req.body;
   const donor_id = ObjectID(donor);
-  req.app.locals.tasks.updateOne(
-    { _id: task_id },
-    {
-      $inc: { clapsReceived: value }
-    },
-    {
-      $push : { givenClaps: donor_id }
-    }
-  ).then((result) => {
-    res.status(200).end();
-  }).catch(err => {
-    console.error(err);
-    res.status(503).end();
-  });
-
+  if (value === -1) {
+    req.app.locals.tasks.updateOne(
+      {
+        _id: task_id
+      },
+      {
+        $inc: { clapsReceived: value },
+        $pull : { givenClaps: donor_id }
+      }
+    ).then((result) => {
+      res.status(200).end();
+    }).catch(err => {
+      console.error(err);
+      res.status(503).end();
+    });
+  } else {
+    req.app.locals.tasks.updateOne(
+      {
+        _id: task_id
+      },
+      {
+        $inc: { clapsReceived: value },
+        $addToSet : { givenClaps: donor_id }
+      }
+    ).then((result) => {
+      res.status(200).end();
+    }).catch(err => {
+      console.error(err);
+      res.status(503).end();
+    });
+  }
 });
 
 /* PUT task: add mangos to task */
@@ -83,7 +99,7 @@ router.put('/feed/mangos/:task_id', (req, res, next) => {
       $inc: { mangosReceived: numMango }
     },
     {
-      $push : { mangoTransactions: newMangoTransaction }
+      $addToSet : { mangoTransactions: newMangoTransaction }
     }
   ).then((result) => {
     res.status(200).end();
