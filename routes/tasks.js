@@ -96,9 +96,7 @@ router.put('/feed/mangos/:task_id', (req, res, next) => {
   req.app.locals.tasks.updateOne(
     { _id: task_id },
     {
-      $inc: { mangosReceived: numMango }
-    },
-    {
+      $inc: { mangosReceived: numMango },
       $addToSet : { mangoTransactions: newMangoTransaction }
     }
   ).then((result) => {
