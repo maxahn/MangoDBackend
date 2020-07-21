@@ -156,7 +156,7 @@ router.put('/profile/name/:user_id', (req, res, next) => {
   });
 });
 
-/* UNTESTED PUT: Add a follower (currUser) to a user  */
+/* PUT: Add a follower (currUser) to a user  */
 router.put('/follow/:user_id', (req, res, next) => {
   const { currUser } = req.body;
   const currentUserID = ObjectID(currUser);
@@ -184,7 +184,7 @@ router.put('/follow/:user_id', (req, res, next) => {
   });
 });
 
-/* UNTESTED PUT: Remove a follower (currUser) from a user  */
+/* PUT: Remove a follower (currUser) from a user  */
 router.put('/unfollow/:user_id', (req, res, next) => {
   const { currUser } = req.body;
   const currentUserID = ObjectID(currUser);
