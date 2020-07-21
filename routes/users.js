@@ -71,6 +71,8 @@ router.post('/', function(req, res, next) {
     totalMangosEarned: 0,
     totalClapsEarned: 0,
     tasksCompleted: 0,
+    followers: [],
+    following: [],
     dateJoined: Date.now()
   }; // Make sure there's no bad stuff in body
 
@@ -148,6 +150,62 @@ router.put('/profile/name/:user_id', (req, res, next) => {
     }
   ).then((result) => {
     res.status(200).end();
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
+
+/* PUT: Add a follower (currUser) to a user  */
+router.put('/follow/:user_id', (req, res, next) => {
+  const { currUser } = req.body;
+  const currentUserID = ObjectID(currUser);
+  const userID = ObjectID(req.params.user_id);
+  req.app.locals.users.updateOne(    // first add the currUser as a follower
+    { _id: userID },
+    {
+      $addToSet: { followers: currentUserID }
+    }
+  ).then((result) => {
+    req.app.locals.users.updateOne(  // now add the user to the "following" array of currUser
+      {_id: currentUserID},
+      {
+        $addToSet: { following: userID }
+      }
+    ).then((result) => {
+      res.status(200).end();
+    }).catch(err => {
+      console.error(err);
+      res.status(503).end();
+    })                               // end of second query
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
+
+/* PUT: Remove a follower (currUser) from a user  */
+router.put('/unfollow/:user_id', (req, res, next) => {
+  const { currUser } = req.body;
+  const currentUserID = ObjectID(currUser);
+  const userID = ObjectID(req.params.user_id);
+  req.app.locals.users.updateOne(    // remove currUser from array of "followers"
+    { _id: userID },
+    {
+      $pull: { followers: currentUserID }
+    }
+  ).then((result) => {
+    req.app.locals.users.updateOne(  // now remove the user from the "following" array of currUser
+      {_id: currentUserID},
+      {
+        $pull: { following: userID }
+      }
+    ).then((result) => {
+      res.status(200).end();
+    }).catch(err => {
+      console.error(err);
+      res.status(503).end();
+    })                               // end of second query
   }).catch(err => {
     console.error(err);
     res.status(503).end();
