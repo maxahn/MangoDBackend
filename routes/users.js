@@ -73,6 +73,7 @@ router.post('/', function(req, res, next) {
     tasksCompleted: 0,
     followers: [],
     following: [],
+    badges: [],
     dateJoined: Date.now()
   }; // Make sure there's no bad stuff in body
 

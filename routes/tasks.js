@@ -14,7 +14,6 @@ router.get('/', function(req, res, next) {
     });
 });
 
-
 /* GET tasks listing for feed, aggregated with user info. */
 router.get('/feed', function(req, res, next) {
  req.app.locals.tasks.aggregate([
@@ -44,6 +43,45 @@ router.get('/feed', function(req, res, next) {
      console.error(error);
    })
 });
+
+/* GET tasks listing for following feed, aggregated with user info. */
+router.post('/feed/following', function(req, res, next) {
+  let following = req.body;
+  let followArray = [];
+  following.forEach(user => {
+    followArray.push(ObjectID(user));
+  });
+  req.app.locals.tasks.aggregate([
+    {
+      $match: {
+        isPublic: true,
+        user_id: {$in: followArray},
+      },
+    },
+    {
+      $sort: { timestamp: -1 }
+    },
+    {
+      $limit: 20
+    },
+    { $lookup:
+        {
+          from: 'users',
+          localField: 'user_id',
+          foreignField: '_id',
+          as: 'userDetails'
+        }
+    }
+  ]).toArray()
+    .then(result => {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(200).send(JSON.stringify(result));
+    })
+    .catch(error => {
+      console.error(error);
+    })
+});
+
 
 /* PUT task: add clap to task */
 router.put('/feed/claps/:task_id', (req, res, next) => {
