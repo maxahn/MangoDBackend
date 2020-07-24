@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const ObjectID = require("mongodb").ObjectID;
+const sumMangos = require("../services/mangoTransactionHelper").sumMangos;
 
 /* GET tasks listing. */
 router.get('/', function(req, res, next) {
@@ -82,7 +83,6 @@ router.post('/feed/following', function(req, res, next) {
     })
 });
 
-
 /* PUT task: add clap to task */
 router.put('/feed/claps/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
@@ -121,32 +121,6 @@ router.put('/feed/claps/:task_id', (req, res, next) => {
   }
 });
 
-/* PUT task: add mangos to task */
-router.put('/feed/mangos/:task_id', (req, res, next) => {
-  const task_id = ObjectID(req.params.task_id);
-  const { numMango, donor } = req.body;
-  const donor_id = ObjectID(donor);
-  const newMangoTransaction = {
-    user_id: donor_id,
-    mangoCount: numMango,
-    timestamp: Date.now()
-  };
-  req.app.locals.tasks.updateOne(
-    { _id: task_id },
-    {
-      $inc: { mangosReceived: numMango },
-      $push : { mangoTransactions: newMangoTransaction }
-    }
-  ).then((result) => {
-    res.status(200).end();
-  }).catch(err => {
-    console.error(err);
-    res.status(503).end();
-  });
-
-});
-
-
 /* GET tasks by User */
 router.get('/:user_id', function(req, res, next) {
   const user_id  = ObjectID(req.params.user_id);
@@ -171,9 +145,7 @@ router.post('/:user_id', function(req, res, next) {
     dueDate,
     user_id,
     givenClaps: [],
-    clapsReceived: 0,
     mangoTransactions: [],
-    mangosReceived: 0,
     subTasks: [],
     isDone: false,
     timestamp: Date.now()
@@ -186,7 +158,6 @@ router.post('/:user_id', function(req, res, next) {
     res.status(503).end();
   });
 });
-
 
 /* PUT task: updates task of the specified fields */
 
@@ -216,6 +187,47 @@ router.put('/:task_id', (req, res, next) => {
   });
 });
 
+router.put('/:task_id/complete', (req, res, next) => {
+  const task_id = ObjectID(req.params.task_id);
+  console.log(`task id: ${task_id}`);
+  req.app.locals.tasks.findOneAndUpdate(
+    { _id: task_id },
+    {
+      $set: {
+        isDone: true
+      }
+    },
+    {
+      projection: { "mangoTransactions": 1, "user_id": 1, "isDone": 1 },
+    }
+  ).then((updatedTask) => {
+    //TODO: Consider ways to ensure atomicity of these chained operations
+    console.log("findone and update document");
+    console.dir(updatedTask);
+    const { mangoTransactions, user_id, isDone } = updatedTask.value;
+    if (isDone) {
+      res.status(503).end();
+      return;
+    }
+    const mangosEarned = sumMangos(mangoTransactions);
+    res.status(200).send({mangosEarned});
+    // console.log(`sum mangos: ${mangosEarned}`);
+    // return req.app.locals.users.updateOne(
+    //   { _id: user_id },
+    //   {
+    //     $inc: {
+    //       mangoCount: mangosEarned,
+    //       totalMangosEarned: mangosEarned,
+    //       tasksCompleted: 1
+    //     }
+    //   }
+    // );
+  }).catch((err) => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
+
 router.delete('/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
   req.app.locals.tasks.deleteOne(
@@ -231,7 +243,6 @@ router.delete('/:task_id', (req, res, next) => {
   });
 });
 
-
 router.get('/:task_id/givenClaps', (req, res, next) => { 
   const task_id = ObjectID(req.params.task_id);
   req.app.locals.tasks.findOne(
@@ -246,7 +257,7 @@ router.get('/:task_id/givenClaps', (req, res, next) => {
 });
 
 router.get('/:task_id/mangoTransactions', (req, res, next) => { 
-  const task_id = ObjectID(req.params.task_id);
+  // TODO: CH
   req.app.locals.tasks.findOne(
     { _id: task_id },
     { mangoTransactions: 1 }
@@ -353,8 +364,8 @@ router.delete('/:taskID/subTasks/:subTaskID', (req, res, next) => {
   });
 });
 
-// untested due to sending ObjectID in body
 router.post('/:task_id/mangoTransactions', (req, res, next) => { 
+  // TODO: CHECK TASK IS NOT DONE BEFORE ADDING MANGO TRASACTIONS
   const task_id = ObjectID(req.params.task_id);
   const { user_id, mangoCount } = req.body; 
   const newMangoTransaction = {
@@ -375,7 +386,6 @@ router.post('/:task_id/mangoTransactions', (req, res, next) => {
     console.error(err);
     res.status(503).end();
   });
-
 });
 
 module.exports = router;
