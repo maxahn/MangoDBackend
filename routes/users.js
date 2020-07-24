@@ -38,6 +38,7 @@ router.get('/:id', function(req, res, next) {
 // Get a user by auth0_id
 router.get('/auth0/:auth0_id', function(req, res, next) {
   let auth0_id = req.params.auth0_id;
+  console.log("auth0 user");
 
   req.app.locals.users.findOne({
     auth0_id: auth0_id
