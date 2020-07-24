@@ -6,9 +6,7 @@ let cookieParser = require('cookie-parser');
 let logger = require('morgan');
 require('dotenv').config()
 
-let indexRouter = require('./routes/index');
-let usersRouter = require('./routes/users');
-let tasksRouter = require('./routes/tasks');
+let routes = require('./routes');
 
 let app = express();
 
@@ -26,14 +24,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Serves all of our static files from the build directory
 app.use(express.static(path.join(__dirname, 'build')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/tasks', tasksRouter);
-
-// Keeps client side routing functional.
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
+app.use(routes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
