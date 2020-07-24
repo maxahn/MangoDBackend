@@ -211,17 +211,6 @@ router.put('/:task_id/complete', (req, res, next) => {
     }
     const mangosEarned = sumMangos(mangoTransactions);
     res.status(200).send({mangosEarned});
-    // console.log(`sum mangos: ${mangosEarned}`);
-    // return req.app.locals.users.updateOne(
-    //   { _id: user_id },
-    //   {
-    //     $inc: {
-    //       mangoCount: mangosEarned,
-    //       totalMangosEarned: mangosEarned,
-    //       tasksCompleted: 1
-    //     }
-    //   }
-    // );
   }).catch((err) => {
     console.error(err);
     res.status(503).end();
