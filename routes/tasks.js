@@ -246,7 +246,6 @@ router.get('/:task_id/givenClaps', (req, res, next) => {
 });
 
 router.get('/:task_id/mangoTransactions', (req, res, next) => { 
-  // TODO: CH
   req.app.locals.tasks.findOne(
     { _id: task_id },
     { mangoTransactions: 1 }
