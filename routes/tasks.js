@@ -121,10 +121,10 @@ router.put('/feed/claps/:task_id', (req, res, next) => {
   }
 });
 
-/* GET tasks by User */
+/* GET tasks by User ordered by due date */
 router.get('/:user_id', function(req, res, next) {
   const user_id  = ObjectID(req.params.user_id);
-  req.app.locals.tasks.find({user_id}).toArray()
+  req.app.locals.tasks.find({user_id}).sort({ dueDate: 1 }).toArray()
   .then(result => {
     res.setHeader('Content-Type', 'application/json');
     res.status(200).send(result);
@@ -201,9 +201,6 @@ router.put('/:task_id/complete', (req, res, next) => {
       projection: { "mangoTransactions": 1, "user_id": 1, "isDone": 1 },
     }
   ).then((updatedTask) => {
-    //TODO: Consider ways to ensure atomicity of these chained operations
-    console.log("findone and update document");
-    console.dir(updatedTask);
     const { mangoTransactions, user_id, isDone } = updatedTask.value;
     if (isDone) {
       res.status(503).end();
