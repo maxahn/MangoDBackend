@@ -90,7 +90,7 @@ router.post('/', function(req, res, next) {
   });
 });
 
-// Updates the urlname for a given user
+// Updates the profileUrl for a given user
 router.put('/:user_id/urlChange/:profileUrl', (req, res, next) => {
   const user_id = ObjectID(req.params.user_id);
   const newUrlName = req.params.profileUrl;
@@ -106,6 +106,23 @@ router.put('/:user_id/urlChange/:profileUrl', (req, res, next) => {
     console.error(err);
     res.status(503).end();
   });
+})
+
+// Get the user info via the profileUrl
+router.get('/profileUrl/:profileUrl', (req, res, next) => {
+  const profileUrl = req.params.profileUrl;
+
+  req.app.locals.users.findOne({
+    profileUrl: profileUrl
+  })
+    .then(result => {
+      res.setHeader('Content-Type', 'application/json');
+      res.send(result);
+    })
+    .catch(error => {
+      console.error(error);
+      res.status(503).end();
+    });
 })
 
 // update user stats when task is complete 
