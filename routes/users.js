@@ -310,5 +310,30 @@ router.put('/unfollow/:user_id', (req, res, next) => {
   });
 });
 
+router.post('/mangostalks', function(req, res, next) {
+  let mangoStalkUsers = req.body;
+  let output = [];
+  mangoStalkUsers.forEach(element => {
+    output.push(ObjectID(element));
+  });
+
+  req.app.locals.users.find(
+    {
+        _id: {$in: output}
+    },
+    {
+      projection: { "avatar": 1, "username": 1 },
+    }
+  ).toArray()
+
+  .then(result => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(result);
+  })
+  .catch(error => {
+    console.error(error);
+    res.status(503).end();
+  });
+ });
 
 module.exports = router;
