@@ -328,7 +328,7 @@ router.post('/mangostalks', function(req, res, next) {
 
   .then(result => {
     res.setHeader('Content-Type', 'application/json');
-    res.send(result);
+    res.status(200).send(result);
   })
   .catch(error => {
     console.error(error);
