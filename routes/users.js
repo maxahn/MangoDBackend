@@ -74,6 +74,7 @@ router.post('/', function(req, res, next) {
     followers: [],
     following: [],
     badges: [],
+    mangoTransactions: [],
     dateJoined: Date.now()
   }; // Make sure there's no bad stuff in body
 
@@ -88,6 +89,66 @@ router.post('/', function(req, res, next) {
   });
 });
 
+// update user stats when task is complete 
+router.put('/:user_id/taskComplete', (req, res, next) => {
+  const user_id = ObjectID(req.params.user_id);
+  const { mangosEarned } = req.body;
+  console.log(`${user_id} earned ${mangosEarned} mangos!`);
+  return req.app.locals.users.updateOne(
+    { _id: user_id },
+    {
+      $inc: {
+        mangoCount: mangosEarned,
+        totalMangosEarned: mangosEarned,
+        tasksCompleted: 1
+      }
+    }
+  ).then((result) => {
+    res.status(200).send(result);
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
+
+// history
+router.post('/:_id/mangoTransactions', (req, res, next) => {
+  const { _id } = req.params;
+  const {
+    type, 
+    task_id,
+  } = req.body;
+  const { users, tasks } = req.app.locals;
+  switch (type) {
+    case 'TASK_COMPLETE': {
+      tasks.findOne({
+        _id: task_id 
+      }).then(result => {
+        console.dir(result);
+        const { mangoTransactions } = result;
+        // const mangosGained = mangoTransactions.reduce((acc, curr) => acc + curr);
+        return users.updateOne(
+          { _id: _id },
+          { 
+            $push: {
+              mangoHistory: {
+                type,
+                amount
+              }
+            }
+          }
+        );
+      }).catch(err => {
+        console.error(err);
+      });
+    }
+    default: {
+      return;
+    }
+  }
+});
+
+  
 /* PUT user: add clap to user  */
 router.put('/feed/claps/:user_id', (req, res, next) => {
   const { value } = req.body;
