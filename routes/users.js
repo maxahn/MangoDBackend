@@ -90,24 +90,6 @@ router.post('/', function(req, res, next) {
   });
 });
 
-// Updates the profileUrl for a given user
-router.put('/:user_id/urlChange/:profileUrl', (req, res, next) => {
-  const user_id = ObjectID(req.params.user_id);
-  const newUrlName = req.params.profileUrl;
-
-  req.app.locals.users.updateOne(
-    { _id: user_id },
-    {
-      $set: { profileUrl: newUrlName }
-    }
-  ).then((result) => {
-    res.status(200).send(newUrlName);
-  }).catch(err => {
-    console.error(err);
-    res.status(503).end();
-  });
-})
-
 // Get the user info via the profileUrl
 router.get('/profileUrl/:profileUrl', (req, res, next) => {
   const profileUrl = req.params.profileUrl;
@@ -219,6 +201,24 @@ router.put('/feed/mangos/:user_id', (req, res, next) => {
     res.status(503).end();
   });
 });
+
+// Updates the profileUrl for a given user
+router.put('/profile/profileUrl/:user_id', (req, res, next) => {
+  const { newProfileUrl } = req.body;
+  const user_id = ObjectID(req.params.user_id);
+
+  req.app.locals.users.updateOne(
+    { _id: user_id },
+    {
+      $set: { profileUrl: newProfileUrl }
+    }
+  ).then((result) => {
+    res.status(200).send(newProfileUrl);
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+})
 
 /* PUT user: update user's avatar  */
 router.put('/profile/avatar/:user_id', upload.single('image'), (req, res, next) => {
