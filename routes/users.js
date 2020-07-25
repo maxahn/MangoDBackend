@@ -3,7 +3,7 @@ const router = express.Router();
 const ObjectID = require("mongodb").ObjectID;
 const multer  = require('multer');
 const upload = multer({ dest: 'uploads/' });
-
+const { uuidv4 } = require('uuidv4');
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -66,6 +66,7 @@ router.post('/', function(req, res, next) {
     auth0_id: req.body.auth0_id,
     username: req.body.username,
     email: req.body.email,
+    profileUrl: uuidv4(),
     avatar: req.body.avatar,
     mangoCount: 0,
     totalMangosEarned: 0,
@@ -88,6 +89,24 @@ router.post('/', function(req, res, next) {
     res.status(503).end();
   });
 });
+
+// Updates the urlname for a given user
+router.put('/:user_id/urlChange/:profileUrl', (req, res, next) => {
+  const user_id = ObjectID(req.params.user_id);
+  const newUrlName = req.params.profileUrl;
+
+  req.app.locals.users.updateOne(
+    { _id: user_id },
+    {
+      $set: { profileUrl: newUrlName }
+    }
+  ).then((result) => {
+    res.status(200).send(newUrlName);
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+})
 
 // update user stats when task is complete 
 router.put('/:user_id/taskComplete', (req, res, next) => {
