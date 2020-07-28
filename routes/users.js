@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const ObjectID = require("mongodb").ObjectID;
-const aws = require('aws-sdk');
 const multer  = require('multer');
-const multerS3 = require('multer-s3');
 const upload = multer({ dest: 'uploads/' });
 const { uuidv4 } = require('uuidv4');
+require('dotenv').config();
 
-
-const s3 = new aws.S3();
+const imageUpload  = require('../services/imageUploadHelper.js');
+const singleImageUpload = imageUpload.single('image');
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -340,5 +339,13 @@ router.post('/mangostalks', function(req, res, next) {
     res.status(503).end();
   });
  });
+
+
+router.post('/avatar-upload', function(req, res, next) {
+  let mangoStalkUsers = req.body;
+  singleImageUpload(req, res, function(err) {
+    res.status(200).json({'ImageURL': req.file.location});
+  });
+});
 
 module.exports = router;
