@@ -1,7 +1,7 @@
 const aws = require('aws-sdk');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
-const { uuidv4 } = require('uuidv4');
+const { uuid } = require('uuidv4');
 require('dotenv').config();
 
 /** Adapted from https://github.com/badunk/multer-s3 and
@@ -30,7 +30,8 @@ const multerS3Configuration = multerS3({
   },
   key: function (req, file, cb) {
     console.log(file);
-    cb(null, new Date().toISOString() + '-' + file.originalname)
+    let newID = uuid();
+    cb(null, newID + '-' + file.originalname);
   }
 });
 
@@ -39,7 +40,7 @@ const imageUpload = multer({
   storage: multerS3Configuration,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 1024 * 1024 // only allowing images under 1 MB
+    fileSize: 1024 * 1024 // only allow images under 1 MB
   }
 });
 

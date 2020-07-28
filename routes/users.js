@@ -3,7 +3,7 @@ const router = express.Router();
 const ObjectID = require("mongodb").ObjectID;
 const multer  = require('multer');
 const upload = multer({ dest: 'uploads/' });
-const { uuidv4 } = require('uuidv4');
+const { uuid } = require('uuidv4');
 require('dotenv').config();
 
 const imageUpload  = require('../services/imageUploadHelper.js');
@@ -70,7 +70,7 @@ router.post('/', function(req, res, next) {
     auth0_id: req.body.auth0_id,
     username: req.body.username,
     email: req.body.email,
-    profileUrl: uuidv4(),
+    profileUrl: uuid(),
     avatar: req.body.avatar,
     mangoCount: 0,
     totalMangosEarned: 0,
@@ -342,9 +342,14 @@ router.post('/mangostalks', function(req, res, next) {
 
 
 router.post('/avatar-upload', function(req, res, next) {
-  let mangoStalkUsers = req.body;
   singleImageUpload(req, res, function(err) {
-    res.status(200).json({'ImageURL': req.file.location});
+    if (!err && (typeof(req.file) !== "undefined")) {
+      console.log(req.file);
+      res.status(200).json({'ImageURL': req.file.location, 'key': req.file.key});
+    } else {
+      console.error(err);
+      res.status(503).end();
+    }
   });
 });
 
