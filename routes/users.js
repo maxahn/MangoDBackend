@@ -1,9 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const ObjectID = require("mongodb").ObjectID;
+const aws = require('aws-sdk');
 const multer  = require('multer');
+const multerS3 = require('multer-s3');
 const upload = multer({ dest: 'uploads/' });
 const { uuidv4 } = require('uuidv4');
+
+
+const s3 = new aws.S3();
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
