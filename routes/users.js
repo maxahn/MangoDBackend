@@ -72,6 +72,7 @@ router.post('/', function(req, res, next) {
     email: req.body.email,
     profileUrl: uuid(),
     avatar: req.body.avatar,
+    avatar_AWS_Key: "",
     mangoCount: 0,
     totalMangosEarned: 0,
     totalClapsEarned: 0,
@@ -341,7 +342,7 @@ router.post('/mangostalks', function(req, res, next) {
  });
 
 
-router.post('/avatar-upload', function(req, res, next) {
+router.put('/profile/avatar-upload/:user_id', function(req, res, next) {
   singleImageUpload(req, res, function(err) {
     if (!err && (typeof(req.file) !== "undefined")) {
       console.log(req.file);
