@@ -24,6 +24,7 @@ const fileFilter = (req, file, cb) => {
 const multerS3Configuration = multerS3({
   s3: s3Configuration,
   bucket: process.env.AWS_BUCKET_NAME,
+  acl: 'public-read',
   metadata: function (req, file, cb) {
     cb(null, { fieldName: file.fieldname });
   },
@@ -32,6 +33,7 @@ const multerS3Configuration = multerS3({
     cb(null, new Date().toISOString() + '-' + file.originalname)
   }
 });
+
 
 const imageUpload = multer({
   storage: multerS3Configuration,
