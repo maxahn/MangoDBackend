@@ -353,13 +353,14 @@ router.put('/profile/avatar-upload/:user_id/:avatarKey', function(req, res, next
   const userID = ObjectID(req.params.user_id);
   const avatarKey = req.params.avatarKey;
 
-  // if user has a profile image already stored in AWS S3, delete it to save space
+  // if user has a profile image already stored in AWS S3, delete it to recover the space
   if (!(avatarKey === "none")) {
     s3Instance.deleteObject({
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: avatarKey
     },function (err,data){})
-  }
+  } // if we encounter an error do nothing, try uploading a new image anyways to reduce user inconvenience.
+  // Image is most likely not in S3 if this fails.
 
   // now upload the new image to AWS S3
   singleImageUpload(req, res, function(err) {

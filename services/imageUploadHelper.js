@@ -4,7 +4,7 @@ const multerS3 = require('multer-s3');
 const { uuid } = require('uuidv4');
 require('dotenv').config();
 
-/** Adapted from https://github.com/badunk/multer-s3 and
+/** Adapted from https://github.com/badunk/multer-s3 , https://www.youtube.com/watch?v=ASuU4km3VHE, and
  *  https://stackoverflow.com/questions/40494050/uploading-image-to-amazon-s3-using-multer-s3-nodejs */
 
 const s3Configuration = new aws.S3({
