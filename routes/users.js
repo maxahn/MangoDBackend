@@ -4,7 +4,14 @@ const ObjectID = require("mongodb").ObjectID;
 const multer  = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const { uuid } = require('uuidv4');
+const AWS = require('aws-sdk');
 require('dotenv').config();
+
+const s3Instance = new AWS.S3({
+  accessKeyId: process.env.AWS_IAM_USER_KEY,
+  secretAccessKey: process.env.AWS_IAM_USER_SECRET,
+  region: process.env.AWS_REGION
+});
 
 const imageUpload  = require('../services/imageUploadHelper.js');
 const singleImageUpload = imageUpload.single('image');
@@ -342,12 +349,35 @@ router.post('/mangostalks', function(req, res, next) {
  });
 
 
-router.put('/profile/avatar-upload/:user_id', function(req, res, next) {
+router.put('/profile/avatar-upload/:user_id/:avatarKey', function(req, res, next) {
+  const userID = ObjectID(req.params.user_id);
+  const avatarKey = req.params.avatarKey;
+
+  // if user has a profile image already stored in AWS S3, delete it to save space
+  if (!(avatarKey === "none")) {
+    s3Instance.deleteObject({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: avatarKey
+    },function (err,data){})
+  }
+
+  // now upload the new image to AWS S3
   singleImageUpload(req, res, function(err) {
     if (!err && (typeof(req.file) !== "undefined")) {
-      console.log(req.file);
-      res.status(200).json({'ImageURL': req.file.location, 'key': req.file.key});
-    } else {
+      // now update avatar URL and AWS Key in MongoDB
+      req.app.locals.users.updateOne(
+        { _id: userID },
+        {
+          $set: { avatar: req.file.location, avatar_AWS_Key: req.file.key }
+        }
+      ).then((result) => {
+        res.status(200).end();
+      }).catch(err => {
+        console.error(err);
+        res.status(503).end();
+      });                          // end of MongoDB Query
+
+    } else {           // Hit this block if AWS S3 upload fails
       console.error(err);
       res.status(503).end();
     }
