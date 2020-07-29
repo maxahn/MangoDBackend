@@ -2,6 +2,7 @@ let createError = require('http-errors');
 let express = require('express');
 let cors = require('cors');
 let path = require('path');
+let bodyParser = require('body-parser');
 let cookieParser = require('cookie-parser');
 let logger = require('morgan');
 require('dotenv').config()
@@ -19,6 +20,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Serves all of our static files from the build directory

@@ -3,7 +3,18 @@ const router = express.Router();
 const ObjectID = require("mongodb").ObjectID;
 const multer  = require('multer');
 const upload = multer({ dest: 'uploads/' });
-const { uuidv4 } = require('uuidv4');
+const { uuid } = require('uuidv4');
+const AWS = require('aws-sdk');
+require('dotenv').config();
+
+const s3Instance = new AWS.S3({
+  accessKeyId: process.env.AWS_IAM_USER_KEY,
+  secretAccessKey: process.env.AWS_IAM_USER_SECRET,
+  region: process.env.AWS_REGION
+});
+
+const imageUpload  = require('../services/imageUploadHelper.js');
+const singleImageUpload = imageUpload.single('image');
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -66,8 +77,9 @@ router.post('/', function(req, res, next) {
     auth0_id: req.body.auth0_id,
     username: req.body.username,
     email: req.body.email,
-    profileUrl: uuidv4(),
+    profileUrl: uuid(),
     avatar: req.body.avatar,
+    avatar_AWS_Key: "",
     mangoCount: 0,
     totalMangosEarned: 0,
     totalClapsEarned: 0,
@@ -105,7 +117,7 @@ router.get('/profileUrl/:profileUrl', (req, res, next) => {
       console.error(error);
       res.status(503).end();
     });
-})
+});
 
 // update user stats when task is complete 
 router.put('/:user_id/taskComplete', (req, res, next) => {
@@ -218,23 +230,6 @@ router.put('/profile/profileUrl/:user_id', (req, res, next) => {
     console.error(err);
     res.status(503).end();
   });
-})
-
-/* PUT user: update user's avatar  */
-router.put('/profile/avatar/:user_id', upload.single('image'), (req, res, next) => {
-   const user_id = ObjectID(req.params.user_id);
-   const { image } = req.body;
-   req.app.locals.users.updateOne(
-    { _id: user_id },
-    {
-      $set: { avatar: image }
-    }
-  ).then((result) => {
-    res.status(200).end();
-  }).catch(err => {
-    console.error(err);
-    res.status(503).end();
-  });
 });
 
 /* PUT user: update username of user  */
@@ -335,5 +330,42 @@ router.post('/mangostalks', function(req, res, next) {
     res.status(503).end();
   });
  });
+
+/* PUT: update user avatar  */
+router.put('/profile/avatar-upload/:user_id/:avatarKey', function(req, res, next) {
+  const userID = ObjectID(req.params.user_id);
+  const avatarKey = req.params.avatarKey;
+
+  // if user has a profile image already stored in AWS S3, delete it to recover the space
+  if (!(avatarKey === "none")) {
+    s3Instance.deleteObject({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: avatarKey
+    },function (err,data){})
+  } // if we encounter an error do nothing, try uploading a new image anyways to reduce user inconvenience.
+  // Image is most likely not in S3 if this fails.
+
+  // now upload the new image to AWS S3
+  singleImageUpload(req, res, function(err) {
+    if (!err && (typeof(req.file) !== "undefined")) {
+      // now update avatar URL and AWS Key in MongoDB
+      req.app.locals.users.updateOne(
+        { _id: userID },
+        {
+          $set: { avatar: req.file.location, avatar_AWS_Key: req.file.key }
+        }
+      ).then((result) => {
+        res.status(200).end();
+      }).catch(err => {
+        console.error(err);
+        res.status(503).end();
+      });                          // end of MongoDB Query
+
+    } else {           // Hit this block if AWS S3 upload fails
+      console.error(err);
+      res.status(503).end();
+    }
+  });
+});
 
 module.exports = router;
