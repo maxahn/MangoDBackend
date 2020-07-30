@@ -87,15 +87,13 @@ router.post('/feed/following', function(req, res, next) {
 router.put('/feed/claps/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
   const { value, donor } = req.body;
-  const donor_id = ObjectID(donor);
   if (value === -1) {
     req.app.locals.tasks.updateOne(
       {
         _id: task_id
       },
       {
-        $inc: { clapsReceived: value },
-        $pull : { givenClaps: donor_id }
+        $pull : { givenClaps: donor }
       }
     ).then((result) => {
       res.status(200).end();
@@ -109,8 +107,7 @@ router.put('/feed/claps/:task_id', (req, res, next) => {
         _id: task_id
       },
       {
-        $inc: { clapsReceived: value },
-        $addToSet : { givenClaps: donor_id }
+        $addToSet : { givenClaps: donor }
       }
     ).then((result) => {
       res.status(200).end();
