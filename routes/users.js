@@ -48,7 +48,6 @@ router.get('/:id', function(req, res, next) {
 });
 
 // Get user's mangoTrees, if mangoTrees does not exist, add it to user and send to client
-          // projection: { mangoTrees: 1 },
 router.get('/:id/mangoTrees', (req, res, next) => {
   let id = ObjectID(req.params.id);
   req.app.locals.users.findOne(
