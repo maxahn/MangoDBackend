@@ -401,4 +401,27 @@ router.put('/profile/avatar-upload/:user_id/:avatarKey', function(req, res, next
   });
 });
 
+// returns # of mangos harvested and updates the picked mango to current time
+router.put('/:id/mangoTrees/:treeId/:index/harvestMango', (req, res, next) => {
+  const { id, treeId, index } = req.params;
+  const _id =  new ObjectID(id);
+
+  const newMangoTimestamp = new Date().getTime();
+  console.log(`user_id: ${id}, tree id: ${treeId}`);
+  req.app.locals.users.findOneAndUpdate(
+   {_id, "mangoTrees.id": treeId },
+    { $set: {
+      [`mangoTrees.$.mangos.${index}`]: newMangoTimestamp
+    }},
+    {
+      projection: { mangoTrees: { $elemMatch: { id : treeId }} }
+    }
+  ).then((result) => {
+    res.status(200).send(result);
+  }).catch((err) => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
+
 module.exports = router;
