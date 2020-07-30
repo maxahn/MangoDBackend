@@ -47,7 +47,8 @@ router.get('/:id', function(req, res, next) {
     });
 });
 
-// get user, if mangoTrees does not exist, add it to user and send to client
+// Get user's mangoTrees, if mangoTrees does not exist, add it to user and send to client
+          // projection: { mangoTrees: 1 },
 router.get('/:id/mangoTrees', (req, res, next) => {
   let id = ObjectID(req.params.id);
   req.app.locals.users.findOne(
@@ -56,14 +57,21 @@ router.get('/:id/mangoTrees', (req, res, next) => {
     ).then(({ mangoTrees }) => {
       if (mangoTrees) {
         res.status(200).send(mangoTrees).end();
-      } else {
-        return req.app.locals.users.updateOne(
-          {_id: id},
-          { $set: { mangoTrees: [initializeMangoTree()] }}
-        );
-      }
+        return;
+      } 
+      return req.app.locals.users.findOneAndUpdate(
+        {_id: id},
+        { $set: { mangoTrees: [initializeMangoTree()] }},
+        { 
+          projection: { mangoTrees: 1},
+          returnOriginal: false
+        }
+      );
     }).then((result) => {
-      res.status(200).send(result).end();
+      if (result) {
+        const { mangoTrees } = result.value;
+        res.status(200).send(mangoTrees).end();
+      }
     })
     .catch((err) => {
       console.error(err);
