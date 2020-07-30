@@ -6,6 +6,7 @@ const upload = multer({ dest: 'uploads/' });
 const { uuid } = require('uuidv4');
 const AWS = require('aws-sdk');
 require('dotenv').config();
+const { initializeMangoTree } = require("../services/MangoIdleGame/mangoTreeHelper");
 
 const s3Instance = new AWS.S3({
   accessKeyId: process.env.AWS_IAM_USER_KEY,
@@ -42,6 +43,30 @@ router.get('/:id', function(req, res, next) {
     })
     .catch(error => {
       console.error(error);
+      res.status(503).end();
+    });
+});
+
+// get user, if mangoTrees does not exist, add it to user and send to client
+router.get('/:id/mangoTrees', (req, res, next) => {
+  let id = ObjectID(req.params.id);
+  req.app.locals.users.findOne(
+    { _id: id },
+    { projection: { mangoTrees: 1 }}
+    ).then(({ mangoTrees }) => {
+      if (mangoTrees) {
+        res.status(200).send(mangoTrees).end();
+      } else {
+        return req.app.locals.users.updateOne(
+          {_id: id},
+          { $set: { mangoTrees: [initializeMangoTree()] }}
+        );
+      }
+    }).then((result) => {
+      res.status(200).send(result).end();
+    })
+    .catch((err) => {
+      console.error(err);
       res.status(503).end();
     });
 });
@@ -88,6 +113,7 @@ router.post('/', function(req, res, next) {
     following: [],
     badges: [],
     mangoTransactions: [],
+    mangoTrees: [ initializeMangoTree() ],
     dateJoined: Date.now()
   }; // Make sure there's no bad stuff in body
 
