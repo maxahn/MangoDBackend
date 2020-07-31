@@ -156,7 +156,6 @@ router.get('/profileUrl/:profileUrl', (req, res, next) => {
 router.put('/:user_id/taskComplete', (req, res, next) => {
   const user_id = ObjectID(req.params.user_id);
   const { mangosEarned } = req.body;
-  console.log(`${user_id} earned ${mangosEarned} mangos!`);
   return req.app.locals.users.updateOne(
     { _id: user_id },
     {
@@ -407,7 +406,6 @@ router.put('/:id/mangoTrees/:treeId/:index/harvestMango', (req, res, next) => {
   const _id =  new ObjectID(id);
 
   const newMangoTimestamp = new Date().getTime();
-  console.log(`user_id: ${id}, tree id: ${treeId}`);
   req.app.locals.users.findOneAndUpdate(
    {_id, "mangoTrees.id": treeId },
     { $set: {
@@ -418,10 +416,14 @@ router.put('/:id/mangoTrees/:treeId/:index/harvestMango', (req, res, next) => {
     }
   ).then(({value}) => {
     const { index } = req.params;
-    const { mangos } = value;
-    console.log(`index: ${index}, mango: ${mangos[index]}`);
-
-    res.status(200).send(result);
+    const { mangoTrees } = value;
+    if (mangoTrees[0]) {
+      const { mangos } = mangoTrees[0];
+      const mangoValue = Math.floor(calculateMangoWorth(mangos[index]));
+      res.status(200).send({ mangoReward: mangoValue });
+      return;
+    }
+    res.status(503).end();
   }).catch((err) => {
     console.error(err);
     res.status(503).end();
