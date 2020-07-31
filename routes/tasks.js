@@ -145,6 +145,7 @@ router.post('/:user_id', function(req, res, next) {
     mangoTransactions: [],
     subTasks: [],
     isDone: false,
+    completionTimestamp: null,
     timestamp: Date.now()
   };
 
@@ -191,7 +192,8 @@ router.put('/:task_id/complete', (req, res, next) => {
     { _id: task_id },
     {
       $set: {
-        isDone: true
+        isDone: true,
+        completionTimestamp: Date.now(),
       }
     },
     {
