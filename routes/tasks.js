@@ -146,6 +146,7 @@ router.post('/:user_id', function(req, res, next) {
     subTasks: [],
     isDone: false,
     completionTimestamp: null,
+    startTimestamp: Date.now(),
     timestamp: Date.now()
   };
 
@@ -174,7 +175,8 @@ router.put('/:task_id', (req, res, next) => {
     { _id: task_id },
     {
       $set: {
-        ...updatedTask
+        ...updatedTask,
+        timestamp: Date.now(),
       }
     }
   ).then((result) => {
@@ -194,6 +196,7 @@ router.put('/:task_id/complete', (req, res, next) => {
       $set: {
         isDone: true,
         completionTimestamp: Date.now(),
+        timestamp: Date.now(),
       }
     },
     {
