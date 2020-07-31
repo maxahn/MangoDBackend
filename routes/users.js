@@ -317,7 +317,7 @@ router.post('/mangostalks', function(req, res, next) {
         _id: {$in: output}
     },
     {
-      projection: { "avatar": 1, "username": 1 },
+      projection: { "avatar": 1, "username": 1, "profileUrl": 1, "badges": 1},
     }
   ).toArray()
 
