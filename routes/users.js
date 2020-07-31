@@ -6,7 +6,7 @@ const upload = multer({ dest: 'uploads/' });
 const { uuid } = require('uuidv4');
 const AWS = require('aws-sdk');
 require('dotenv').config();
-const { initializeMangoTree } = require("../services/MangoIdleGame/mangoTreeHelper");
+const { initializeMangoTree, calculateMangoWorth } = require("../services/MangoIdleGame/mangoTreeHelper");
 
 const s3Instance = new AWS.S3({
   accessKeyId: process.env.AWS_IAM_USER_KEY,
@@ -416,7 +416,11 @@ router.put('/:id/mangoTrees/:treeId/:index/harvestMango', (req, res, next) => {
     {
       projection: { mangoTrees: { $elemMatch: { id : treeId }} }
     }
-  ).then((result) => {
+  ).then(({value}) => {
+    const { index } = req.params;
+    const { mangos } = value;
+    console.log(`index: ${index}, mango: ${mangos[index]}`);
+
     res.status(200).send(result);
   }).catch((err) => {
     console.error(err);

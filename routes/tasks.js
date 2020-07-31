@@ -160,7 +160,6 @@ router.post('/:user_id', function(req, res, next) {
 });
 
 /* PUT task: updates task of the specified fields */
-
 router.put('/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
   const { body } = req; 
