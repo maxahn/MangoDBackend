@@ -55,7 +55,9 @@ router.put('/:id/mangoTrees/initialize', (req, res, next) => {
   req.app.locals.users.findOneAndUpdate(
     { _id: id },
     { $set: { "mangoTrees": [initializeMangoTree()] }},
-    { returnOriginal: false }
+    { projection: { mangoTrees: 1}, 
+      returnOriginal: false 
+    }
   ).then(({value}) => {
     console.dir(value);
     res.status(200).send(value).end();
