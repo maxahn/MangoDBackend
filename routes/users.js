@@ -55,7 +55,7 @@ router.put('/:id/mangoTrees/initialize', (req, res, next) => {
   req.app.locals.users.findOneAndUpdate(
     { _id: id },
     { $set: { "mangoTrees": [initializeMangoTree()] }},
-    { projection: { mangoTrees: 1}, 
+    { projection: { mangoTrees: 1 }, 
       returnOriginal: false 
     }
   ).then(({value}) => {
@@ -154,6 +154,30 @@ router.put('/:user_id/taskComplete', (req, res, next) => {
         totalMangosEarned: mangosEarned,
         tasksCompleted: 1
       }
+    }
+  ).then((result) => {
+    res.status(200).send(result);
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
+
+router.put('/:user_id/addMangos', (req, res, next) => {
+  const user_id = ObjectID(req.params.user_id);
+  const { mangosEarned, isTask } = req.body;
+  let updateInc = {
+    mangoCount: mangosEarned,
+    totalMangosEarned: mangosEarned
+  };
+  if (isTask) {
+    updateInc.tasksCompleted = 1
+  };
+  console.dir(updateInc);
+  return req.app.locals.users.updateOne(
+    { _id: user_id },
+    {
+      $inc: updateInc 
     }
   ).then((result) => {
     res.status(200).send(result);
