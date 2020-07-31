@@ -51,7 +51,6 @@ router.get('/:id', function(req, res, next) {
 router.put('/:id/mangoTrees/initialize', (req, res, next) => {
   let id = ObjectID(req.params.id);
   const { treeLevel } = req.body;
-  console.log("initialize: " + req.app.locals.users);;
   req.app.locals.users.findOneAndUpdate(
     { _id: id },
     { $set: { "mangoTrees": [initializeMangoTree()] }},
@@ -59,7 +58,6 @@ router.put('/:id/mangoTrees/initialize', (req, res, next) => {
       returnOriginal: false 
     }
   ).then(({value}) => {
-    console.dir(value);
     res.status(200).send(value).end();
   })
   .catch((err) => {
@@ -173,7 +171,6 @@ router.put('/:user_id/addMangos', (req, res, next) => {
   if (isTask) {
     updateInc.tasksCompleted = 1
   };
-  console.dir(updateInc);
   return req.app.locals.users.updateOne(
     { _id: user_id },
     {
@@ -200,7 +197,6 @@ router.post('/:_id/mangoTransactions', (req, res, next) => {
       tasks.findOne({
         _id: task_id 
       }).then(result => {
-        console.dir(result);
         const { mangoTransactions } = result;
         // const mangosGained = mangoTransactions.reduce((acc, curr) => acc + curr);
         return users.updateOne(
