@@ -6,6 +6,7 @@ const upload = multer({ dest: 'uploads/' });
 const { uuid } = require('uuidv4');
 const AWS = require('aws-sdk');
 require('dotenv').config();
+const { initializeMangoTree, calculateMangoWorth } = require("../services/MangoIdleGame/mangoTreeHelper");
 
 const s3Instance = new AWS.S3({
   accessKeyId: process.env.AWS_IAM_USER_KEY,
@@ -44,6 +45,25 @@ router.get('/:id', function(req, res, next) {
       console.error(error);
       res.status(503).end();
     });
+});
+
+// should only be called if user has no mangoTrees 
+router.put('/:id/mangoTrees/initialize', (req, res, next) => {
+  let id = ObjectID(req.params.id);
+  const { treeLevel } = req.body;
+  req.app.locals.users.findOneAndUpdate(
+    { _id: id },
+    { $set: { "mangoTrees": [initializeMangoTree()] }},
+    { projection: { mangoTrees: 1 }, 
+      returnOriginal: false 
+    }
+  ).then(({value}) => {
+    res.status(200).send(value).end();
+  })
+  .catch((err) => {
+    console.error(err);
+    res.status(503).end();
+  });
 });
 
 // Get a user by auth0_id
@@ -88,6 +108,7 @@ router.post('/', function(req, res, next) {
     following: [],
     badges: [],
     mangoTransactions: [],
+    mangoTrees: [],
     dateJoined: Date.now()
   }; // Make sure there's no bad stuff in body
 
@@ -123,7 +144,6 @@ router.get('/profileUrl/:profileUrl', (req, res, next) => {
 router.put('/:user_id/taskComplete', (req, res, next) => {
   const user_id = ObjectID(req.params.user_id);
   const { mangosEarned } = req.body;
-  console.log(`${user_id} earned ${mangosEarned} mangos!`);
   return req.app.locals.users.updateOne(
     { _id: user_id },
     {
@@ -132,6 +152,29 @@ router.put('/:user_id/taskComplete', (req, res, next) => {
         totalMangosEarned: mangosEarned,
         tasksCompleted: 1
       }
+    }
+  ).then((result) => {
+    res.status(200).send(result);
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
+
+router.put('/:user_id/addMangos', (req, res, next) => {
+  const user_id = ObjectID(req.params.user_id);
+  const { mangosEarned, isTask } = req.body;
+  let updateInc = {
+    mangoCount: mangosEarned,
+    totalMangosEarned: mangosEarned
+  };
+  if (isTask) {
+    updateInc.tasksCompleted = 1
+  };
+  return req.app.locals.users.updateOne(
+    { _id: user_id },
+    {
+      $inc: updateInc 
     }
   ).then((result) => {
     res.status(200).send(result);
@@ -154,7 +197,6 @@ router.post('/:_id/mangoTransactions', (req, res, next) => {
       tasks.findOne({
         _id: task_id 
       }).then(result => {
-        console.dir(result);
         const { mangoTransactions } = result;
         // const mangosGained = mangoTransactions.reduce((acc, curr) => acc + curr);
         return users.updateOne(
@@ -365,6 +407,36 @@ router.put('/profile/avatar-upload/:user_id/:avatarKey', function(req, res, next
       console.error(err);
       res.status(503).end();
     }
+  });
+});
+
+// returns # of mangos harvested and updates the picked mango to current time
+router.put('/:id/mangoTrees/:treeId/:index/harvestMango', (req, res, next) => {
+  const { id, treeId, index } = req.params;
+  const _id =  new ObjectID(id);
+
+  const newMangoTimestamp = new Date().getTime();
+  req.app.locals.users.findOneAndUpdate(
+   {_id, "mangoTrees.id": treeId },
+    { $set: {
+      [`mangoTrees.$.mangos.${index}`]: newMangoTimestamp
+    }},
+    {
+      projection: { mangoTrees: { $elemMatch: { id : treeId }} }
+    }
+  ).then(({value}) => {
+    const { index } = req.params;
+    const { mangoTrees } = value;
+    if (mangoTrees[0]) {
+      const { mangos } = mangoTrees[0];
+      const mangoValue = Math.floor(calculateMangoWorth(mangos[index]));
+      res.status(200).send({ mangoReward: mangoValue });
+      return;
+    }
+    res.status(503).end();
+  }).catch((err) => {
+    console.error(err);
+    res.status(503).end();
   });
 });
 
