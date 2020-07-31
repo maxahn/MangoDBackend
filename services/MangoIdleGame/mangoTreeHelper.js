@@ -1,4 +1,4 @@
-const MANGOTREEDATA = require("./MANGOTREEDATA").MANGOTREEDATA;
+const { MANGO_TREE_DATA } = require("./MANGO_TREE_DATA");
 const { uuid } = require('uuidv4');
 const { getMinuteDifference } = require("../Date");
 
@@ -6,8 +6,7 @@ const initializeMangoTree = () => {
   let mangos = [];
   let level = 1;
   let startDate = new Date();
-  // console.log(MANGOTREEDATA.levelToMaxMangos(level));
-  for (let i = 0; i < MANGOTREEDATA.levelToMaxMangos(level); i++) {
+  for (let i = 0; i < MANGO_TREE_DATA.levelToMaxMangos(level); i++) {
     mangos.push(startDate.getTime());
   }
 
@@ -20,7 +19,6 @@ const initializeMangoTree = () => {
 
 const getRipePercentage = (timestamp, fullGrowthMinutes) => {
   const now = new Date().getTime();
-  console.log(`timestamp: ${timestamp}, full: ${fullGrowthMinutes}`);
   return getMinuteDifference(timestamp, now) / fullGrowthMinutes;
 };
 
@@ -28,20 +26,22 @@ const enforceRange = (num, max, min) => {
   return Math.min(Math.max(num, min), max);
 }
 
+const calculateMangoBonus = (ripePercentage) => {
+  const randomNum = Math.random();
+  const { maxMangos, bonus } = MANGO_TREE_DATA;
+  const maxMangoBonus = maxMangos * bonus;
+  let mangoBonus = (randomNum < ripePercentage ) ? maxMangoBonus * randomNum : 0; 
+  return enforceRange(mangoBonus, maxMangoBonus, 0);
+}
+
 const calculateMangoWorth = (mangoTimestamp) => {
-  console.dir(MANGOTREEDATA);
-  const { fullGrowthMinutes, minMangos, maxMangos, bonus } = MANGOTREEDATA;
+  const { fullGrowthMinutes, minMangos, maxMangos, bonus } = MANGO_TREE_DATA;
   const per =  getRipePercentage(mangoTimestamp, fullGrowthMinutes);
   let base = Math.floor((maxMangos - minMangos) * per) + minMangos;
   base = enforceRange(base, maxMangos, minMangos);
-  const randomNum = Math.random();
-  const maxMangoBonus = maxMangos * bonus;
-  let mangoBonus = (randomNum < per ) ? maxMangoBonus * randomNum : 0; 
-  mangoBonus = enforceRange(mangoBonus, maxMangoBonus, 0);
+  const mangoBonus = calculateMangoBonus(per);
   return base + mangoBonus; 
 }
-
-console.log(calculateMangoWorth(new Date().getTime() - (100000*60*3)));
 
 exports.initializeMangoTree = initializeMangoTree;
 exports.calculateMangoWorth = calculateMangoWorth;

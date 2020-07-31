@@ -47,35 +47,23 @@ router.get('/:id', function(req, res, next) {
     });
 });
 
-// Get user's mangoTrees, if mangoTrees does not exist, add it to user and send to client
-router.get('/:id/mangoTrees', (req, res, next) => {
+// should only be called if user has no mangoTrees 
+router.put('/:id/mangoTrees/initialize', (req, res, next) => {
   let id = ObjectID(req.params.id);
-  req.app.locals.users.findOne(
+  const { treeLevel } = req.body;
+  console.log("initialize: " + req.app.locals.users);;
+  req.app.locals.users.findOneAndUpdate(
     { _id: id },
-    { projection: { mangoTrees: 1 }}
-    ).then(({ mangoTrees }) => {
-      if (mangoTrees) {
-        res.status(200).send(mangoTrees).end();
-        return;
-      } 
-      return req.app.locals.users.findOneAndUpdate(
-        {_id: id},
-        { $set: { mangoTrees: [initializeMangoTree()] }},
-        { 
-          projection: { mangoTrees: 1},
-          returnOriginal: false
-        }
-      );
-    }).then((result) => {
-      if (result) {
-        const { mangoTrees } = result.value;
-        res.status(200).send(mangoTrees).end();
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(503).end();
-    });
+    { $set: { "mangoTrees": [initializeMangoTree()] }},
+    { returnOriginal: false }
+  ).then(({value}) => {
+    console.dir(value);
+    res.status(200).send(value).end();
+  })
+  .catch((err) => {
+    console.error(err);
+    res.status(503).end();
+  });
 });
 
 // Get a user by auth0_id
@@ -120,7 +108,7 @@ router.post('/', function(req, res, next) {
     following: [],
     badges: [],
     mangoTransactions: [],
-    mangoTrees: [ initializeMangoTree() ],
+    mangoTrees: [],
     dateJoined: Date.now()
   }; // Make sure there's no bad stuff in body
 

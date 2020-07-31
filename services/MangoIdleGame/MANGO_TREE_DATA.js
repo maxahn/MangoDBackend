@@ -1,4 +1,4 @@
-const MANGOTREEDATA =  {
+const MANGO_TREE_DATA =  {
   fullGrowthMinutes: 240,
   maxMangos: 30,
   minMangos: 2, 
@@ -9,4 +9,4 @@ const MANGOTREEDATA =  {
   }
 }
 
-exports.MANGOTREEDATA = MANGOTREEDATA;
+exports.MANGO_TREE_DATA = MANGO_TREE_DATA;
