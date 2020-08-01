@@ -145,6 +145,8 @@ router.post('/:user_id', function(req, res, next) {
     mangoTransactions: [],
     subTasks: [],
     isDone: false,
+    completionTimestamp: null,
+    startTimestamp: Date.now(),
     timestamp: Date.now()
   };
 
@@ -159,20 +161,26 @@ router.post('/:user_id', function(req, res, next) {
 /* PUT task: updates task of the specified fields */
 router.put('/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
-  const { body } = req; 
+  const { body } = req;
+  const {timestamp, taskChanges} = body;
   const validKeys = ["description", "isDone", "isPublic", "dueDate"];
-  const keys = Object.keys(body);
+  const keys = Object.keys(taskChanges);
+  let lastUpdated = timestamp;
+  if (keys.includes("description")) {
+    lastUpdated = Date.now();
+  }
   const updatedTask = {};
   for (let key of validKeys) {
     if (keys.includes(key)) {
-      updatedTask[key] = body[key];
+      updatedTask[key] = taskChanges[key];
     }
   }
   req.app.locals.tasks.updateOne(
     { _id: task_id },
     {
       $set: {
-        ...updatedTask
+        ...updatedTask,
+        timestamp: lastUpdated,
       }
     }
   ).then((result) => {
@@ -190,7 +198,9 @@ router.put('/:task_id/complete', (req, res, next) => {
     { _id: task_id },
     {
       $set: {
-        isDone: true
+        isDone: true,
+        completionTimestamp: Date.now(),
+        timestamp: Date.now(),
       }
     },
     {
