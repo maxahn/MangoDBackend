@@ -159,16 +159,20 @@ router.post('/:user_id', function(req, res, next) {
 });
 
 /* PUT task: updates task of the specified fields */
-
 router.put('/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
-  const { body } = req; 
+  const { body } = req;
+  const {timestamp, taskChanges} = body;
   const validKeys = ["description", "isDone", "isPublic", "dueDate"];
-  const keys = Object.keys(body);
+  const keys = Object.keys(taskChanges);
+  let lastUpdated = timestamp;
+  if (keys.includes("description")) {
+    lastUpdated = Date.now();
+  }
   const updatedTask = {};
   for (let key of validKeys) {
     if (keys.includes(key)) {
-      updatedTask[key] = body[key];
+      updatedTask[key] = taskChanges[key];
     }
   }
   req.app.locals.tasks.updateOne(
@@ -176,7 +180,7 @@ router.put('/:task_id', (req, res, next) => {
     {
       $set: {
         ...updatedTask,
-        timestamp: Date.now(),
+        timestamp: lastUpdated,
       }
     }
   ).then((result) => {
