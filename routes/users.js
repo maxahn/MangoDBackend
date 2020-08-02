@@ -14,6 +14,8 @@ const s3Instance = new AWS.S3({
   region: process.env.AWS_REGION
 });
 
+const CDN_URL = "https://d3ikrmyj5p806c.cloudfront.net";
+
 const imageUpload  = require('../services/imageUploadHelper.js');
 const singleImageUpload = imageUpload.single('image');
 
@@ -394,7 +396,7 @@ router.put('/profile/avatar-upload/:user_id/:avatarKey', function(req, res, next
       req.app.locals.users.updateOne(
         { _id: userID },
         {
-          $set: { avatar: req.file.location, avatar_AWS_Key: req.file.key }
+          $set: { avatar: CDN_URL + `/${req.file.key}`, avatar_AWS_Key: req.file.key }
         }
       ).then((result) => {
         res.status(200).end();
