@@ -3,7 +3,21 @@ const router = express.Router();
 const ObjectID = require("mongodb").ObjectID;
 const multer  = require('multer');
 const upload = multer({ dest: 'uploads/' });
-const { uuidv4 } = require('uuidv4');
+const { uuid } = require('uuidv4');
+const AWS = require('aws-sdk');
+require('dotenv').config();
+const { initializeMangoTree, calculateMangoWorth } = require("../services/MangoIdleGame/mangoTreeHelper");
+
+const s3Instance = new AWS.S3({
+  accessKeyId: process.env.AWS_IAM_USER_KEY,
+  secretAccessKey: process.env.AWS_IAM_USER_SECRET,
+  region: process.env.AWS_REGION
+});
+
+const CDN_URL = "https://d3ikrmyj5p806c.cloudfront.net";
+
+const imageUpload  = require('../services/imageUploadHelper.js');
+const singleImageUpload = imageUpload.single('image');
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -33,6 +47,25 @@ router.get('/:id', function(req, res, next) {
       console.error(error);
       res.status(503).end();
     });
+});
+
+// should only be called if user has no mangoTrees 
+router.put('/:id/mangoTrees/initialize', (req, res, next) => {
+  let id = ObjectID(req.params.id);
+  const { treeLevel } = req.body;
+  req.app.locals.users.findOneAndUpdate(
+    { _id: id },
+    { $set: { "mangoTrees": [initializeMangoTree()] }},
+    { projection: { mangoTrees: 1 }, 
+      returnOriginal: false 
+    }
+  ).then(({value}) => {
+    res.status(200).send(value).end();
+  })
+  .catch((err) => {
+    console.error(err);
+    res.status(503).end();
+  });
 });
 
 // Get a user by auth0_id
@@ -66,8 +99,9 @@ router.post('/', function(req, res, next) {
     auth0_id: req.body.auth0_id,
     username: req.body.username,
     email: req.body.email,
-    profileUrl: uuidv4(),
+    profileUrl: uuid(),
     avatar: req.body.avatar,
+    avatar_AWS_Key: "",
     mangoCount: 0,
     totalMangosEarned: 0,
     totalClapsEarned: 0,
@@ -76,6 +110,7 @@ router.post('/', function(req, res, next) {
     following: [],
     badges: [],
     mangoTransactions: [],
+    mangoTrees: [],
     dateJoined: Date.now()
   }; // Make sure there's no bad stuff in body
 
@@ -105,13 +140,12 @@ router.get('/profileUrl/:profileUrl', (req, res, next) => {
       console.error(error);
       res.status(503).end();
     });
-})
+});
 
 // update user stats when task is complete 
 router.put('/:user_id/taskComplete', (req, res, next) => {
   const user_id = ObjectID(req.params.user_id);
   const { mangosEarned } = req.body;
-  console.log(`${user_id} earned ${mangosEarned} mangos!`);
   return req.app.locals.users.updateOne(
     { _id: user_id },
     {
@@ -120,6 +154,29 @@ router.put('/:user_id/taskComplete', (req, res, next) => {
         totalMangosEarned: mangosEarned,
         tasksCompleted: 1
       }
+    }
+  ).then((result) => {
+    res.status(200).send(result);
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
+
+router.put('/:user_id/addMangos', (req, res, next) => {
+  const user_id = ObjectID(req.params.user_id);
+  const { mangosEarned, isTask } = req.body;
+  let updateInc = {
+    mangoCount: mangosEarned,
+    totalMangosEarned: mangosEarned
+  };
+  if (isTask) {
+    updateInc.tasksCompleted = 1
+  };
+  return req.app.locals.users.updateOne(
+    { _id: user_id },
+    {
+      $inc: updateInc 
     }
   ).then((result) => {
     res.status(200).send(result);
@@ -142,7 +199,6 @@ router.post('/:_id/mangoTransactions', (req, res, next) => {
       tasks.findOne({
         _id: task_id 
       }).then(result => {
-        console.dir(result);
         const { mangoTransactions } = result;
         // const mangosGained = mangoTransactions.reduce((acc, curr) => acc + curr);
         return users.updateOne(
@@ -214,23 +270,6 @@ router.put('/profile/profileUrl/:user_id', (req, res, next) => {
     }
   ).then((result) => {
     res.status(200).send(newProfileUrl);
-  }).catch(err => {
-    console.error(err);
-    res.status(503).end();
-  });
-})
-
-/* PUT user: update user's avatar  */
-router.put('/profile/avatar/:user_id', upload.single('image'), (req, res, next) => {
-   const user_id = ObjectID(req.params.user_id);
-   const { image } = req.body;
-   req.app.locals.users.updateOne(
-    { _id: user_id },
-    {
-      $set: { avatar: image }
-    }
-  ).then((result) => {
-    res.status(200).end();
   }).catch(err => {
     console.error(err);
     res.status(503).end();
@@ -322,7 +361,7 @@ router.post('/mangostalks', function(req, res, next) {
         _id: {$in: output}
     },
     {
-      projection: { "avatar": 1, "username": 1 },
+      projection: { "avatar": 1, "username": 1, "profileUrl": 1, "badges": 1},
     }
   ).toArray()
 
@@ -335,5 +374,72 @@ router.post('/mangostalks', function(req, res, next) {
     res.status(503).end();
   });
  });
+
+/* PUT: update user avatar  */
+router.put('/profile/avatar-upload/:user_id/:avatarKey', function(req, res, next) {
+  const userID = ObjectID(req.params.user_id);
+  const avatarKey = req.params.avatarKey;
+
+  // if user has a profile image already stored in AWS S3, delete it to recover the space
+  if (!(avatarKey === "none")) {
+    s3Instance.deleteObject({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: avatarKey
+    },function (err,data){})
+  } // if we encounter an error do nothing, try uploading a new image anyways to reduce user inconvenience.
+  // Image is most likely not in S3 if this fails.
+
+  // now upload the new image to AWS S3
+  singleImageUpload(req, res, function(err) {
+    if (!err && (typeof(req.file) !== "undefined")) {
+      // now update avatar URL and AWS Key in MongoDB
+      req.app.locals.users.updateOne(
+        { _id: userID },
+        {
+          $set: { avatar: CDN_URL + `/${req.file.key}`, avatar_AWS_Key: req.file.key }
+        }
+      ).then((result) => {
+        res.status(200).end();
+      }).catch(err => {
+        console.error(err);
+        res.status(503).end();
+      });                          // end of MongoDB Query
+
+    } else {           // Hit this block if AWS S3 upload fails
+      console.error(err);
+      res.status(503).end();
+    }
+  });
+});
+
+// returns # of mangos harvested and updates the picked mango to current time
+router.put('/:id/mangoTrees/:treeId/:index/harvestMango', (req, res, next) => {
+  const { id, treeId, index } = req.params;
+  const _id =  new ObjectID(id);
+
+  const newMangoTimestamp = new Date().getTime();
+  req.app.locals.users.findOneAndUpdate(
+   {_id, "mangoTrees.id": treeId },
+    { $set: {
+      [`mangoTrees.$.mangos.${index}`]: newMangoTimestamp
+    }},
+    {
+      projection: { mangoTrees: { $elemMatch: { id : treeId }} }
+    }
+  ).then(({value}) => {
+    const { index } = req.params;
+    const { mangoTrees } = value;
+    if (mangoTrees[0]) {
+      const { mangos } = mangoTrees[0];
+      const mangoValue = Math.floor(calculateMangoWorth(mangos[index]));
+      res.status(200).send({ mangoReward: mangoValue });
+      return;
+    }
+    res.status(503).end();
+  }).catch((err) => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
 
 module.exports = router;
