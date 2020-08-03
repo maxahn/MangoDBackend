@@ -83,6 +83,34 @@ router.post('/feed/following', function(req, res, next) {
     })
 });
 
+/* GET tasks completed for a specific user */
+router.post('/profile/:user_id', function(req, res, next) {
+  const user_id  = ObjectID(req.params.user_id);
+  req.app.locals.tasks.aggregate([
+    {
+      $match: {
+        isPublic: true,
+        isDone: true,
+        user_id,
+      },
+    },
+    {
+      $sort: { timestamp: -1 }
+    },
+    {
+      $limit: 5
+    }
+  ]).toArray()
+  .then(result => {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).send(result);
+  })
+  .catch(err => {
+    res.status(503).end();
+    console.error(err);
+  });
+});
+
 /* PUT task: add clap to task */
 router.put('/feed/claps/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
