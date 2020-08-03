@@ -83,19 +83,45 @@ router.post('/feed/following', function(req, res, next) {
     })
 });
 
+/* GET tasks completed for a specific user */
+router.post('/profile/:user_id', function(req, res, next) {
+  const user_id  = ObjectID(req.params.user_id);
+  req.app.locals.tasks.aggregate([
+    {
+      $match: {
+        isPublic: true,
+        isDone: true,
+        user_id,
+      },
+    },
+    {
+      $sort: { timestamp: -1 }
+    },
+    {
+      $limit: 5
+    }
+  ]).toArray()
+  .then(result => {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).send(result);
+  })
+  .catch(err => {
+    res.status(503).end();
+    console.error(err);
+  });
+});
+
 /* PUT task: add clap to task */
 router.put('/feed/claps/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
   const { value, donor } = req.body;
-  const donor_id = ObjectID(donor);
   if (value === -1) {
     req.app.locals.tasks.updateOne(
       {
         _id: task_id
       },
       {
-        $inc: { clapsReceived: value },
-        $pull : { givenClaps: donor_id }
+        $pull : { givenClaps: donor }
       }
     ).then((result) => {
       res.status(200).end();
@@ -109,8 +135,7 @@ router.put('/feed/claps/:task_id', (req, res, next) => {
         _id: task_id
       },
       {
-        $inc: { clapsReceived: value },
-        $addToSet : { givenClaps: donor_id }
+        $addToSet : { givenClaps: donor }
       }
     ).then((result) => {
       res.status(200).end();
@@ -148,6 +173,8 @@ router.post('/:user_id', function(req, res, next) {
     mangoTransactions: [],
     subTasks: [],
     isDone: false,
+    completionTimestamp: null,
+    startTimestamp: Date.now(),
     timestamp: Date.now()
   };
 
@@ -160,23 +187,28 @@ router.post('/:user_id', function(req, res, next) {
 });
 
 /* PUT task: updates task of the specified fields */
-
 router.put('/:task_id', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
-  const { body } = req; 
+  const { body } = req;
+  const {timestamp, taskChanges} = body;
   const validKeys = ["description", "isDone", "isPublic", "dueDate"];
-  const keys = Object.keys(body);
+  const keys = Object.keys(taskChanges);
+  let lastUpdated = timestamp;
+  if (keys.includes("description")) {
+    lastUpdated = Date.now();
+  }
   const updatedTask = {};
   for (let key of validKeys) {
     if (keys.includes(key)) {
-      updatedTask[key] = body[key];
+      updatedTask[key] = taskChanges[key];
     }
   }
   req.app.locals.tasks.updateOne(
     { _id: task_id },
     {
       $set: {
-        ...updatedTask
+        ...updatedTask,
+        timestamp: lastUpdated,
       }
     }
   ).then((result) => {
@@ -194,7 +226,9 @@ router.put('/:task_id/complete', (req, res, next) => {
     { _id: task_id },
     {
       $set: {
-        isDone: true
+        isDone: true,
+        completionTimestamp: Date.now(),
+        timestamp: Date.now(),
       }
     },
     {
