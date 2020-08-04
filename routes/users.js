@@ -104,6 +104,7 @@ router.post('/', function(req, res, next) {
     avatar_AWS_Key: "",
     mangoCount: 0,
     totalMangosEarned: 0,
+    mangoMultiplier: 0.5,
     totalClapsEarned: 0,
     tasksCompleted: 0,
     followers: [],
@@ -193,7 +194,8 @@ router.post('/feed/deductMango', (req, res, next) => {
   return req.app.locals.users.updateOne(
     { _id: userID },
     {
-      $inc: {mangoCount: mangosToDeduct}
+      $inc: {mangoCount: mangosToDeduct},
+      $set: {mangoMultiplier: 1.0}
     }
   ).then((result) => {
     res.status(200).send(result);
