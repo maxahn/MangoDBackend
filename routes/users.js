@@ -102,7 +102,7 @@ router.post('/', function(req, res, next) {
     profileUrl: uuid(),
     avatar: req.body.avatar,
     avatar_AWS_Key: "",
-    mangoCount: 0,
+    mangoCount: 50,
     totalMangosEarned: 0,
     totalClapsEarned: 0,
     tasksCompleted: 0,
