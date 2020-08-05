@@ -102,8 +102,9 @@ router.post('/', function(req, res, next) {
     profileUrl: uuid(),
     avatar: req.body.avatar,
     avatar_AWS_Key: "",
-    mangoCount: 0,
+    mangoCount: 50,
     totalMangosEarned: 0,
+    mangoMultiplier: 0.5,
     totalClapsEarned: 0,
     tasksCompleted: 0,
     followers: [],
@@ -176,7 +177,25 @@ router.put('/:user_id/addMangos', (req, res, next) => {
   return req.app.locals.users.updateOne(
     { _id: user_id },
     {
-      $inc: updateInc 
+      $inc: updateInc
+    }
+  ).then((result) => {
+    res.status(200).send(result);
+  }).catch(err => {
+    console.error(err);
+    res.status(503).end();
+  });
+});
+
+router.post('/feed/deductMango', (req, res, next) => {
+  const { numMango, donor } = req.body;
+  let userID = ObjectID(donor);
+  let mangosToDeduct = numMango * -1;
+  return req.app.locals.users.updateOne(
+    { _id: userID },
+    {
+      $inc: {mangoCount: mangosToDeduct},
+      $set: {mangoMultiplier: 1.0}
     }
   ).then((result) => {
     res.status(200).send(result);
