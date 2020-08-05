@@ -84,7 +84,7 @@ router.post('/feed/following', function(req, res, next) {
 });
 
 /* GET tasks completed for a specific user */
-router.post('/profile/:user_id', function(req, res, next) {
+router.get('/profile/:user_id', function(req, res, next) {
   const user_id  = ObjectID(req.params.user_id);
   req.app.locals.tasks.aggregate([
     {
