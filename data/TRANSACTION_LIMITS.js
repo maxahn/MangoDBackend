@@ -3,4 +3,4 @@ const TRANSACTION_LIMITS = {
   minMangos: 1
 }
 
-export default TRANSACTION_LIMITS;
+module.exports = TRANSACTION_LIMITS;
