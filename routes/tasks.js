@@ -1,4 +1,5 @@
 const express = require('express');
+const TRANSACTION_LIMITS = require('../data/TRANSACTION_LIMITS');
 const router = express.Router();
 const ObjectID = require("mongodb").ObjectID;
 const sumMangos = require("../services/mangoTransactionHelper").sumMangos;
@@ -84,7 +85,7 @@ router.post('/feed/following', function(req, res, next) {
 });
 
 /* GET tasks completed for a specific user */
-router.post('/profile/:user_id', function(req, res, next) {
+router.get('/profile/:user_id', function(req, res, next) {
   const user_id  = ObjectID(req.params.user_id);
   req.app.locals.tasks.aggregate([
     {
@@ -221,7 +222,6 @@ router.put('/:task_id', (req, res, next) => {
 
 router.put('/:task_id/complete', (req, res, next) => {
   const task_id = ObjectID(req.params.task_id);
-  console.log(`task id: ${task_id}`);
   req.app.locals.tasks.findOneAndUpdate(
     { _id: task_id },
     {
@@ -288,7 +288,6 @@ router.get('/:task_id/mangoTransactions', (req, res, next) => {
   });
 });
 
-// untested due to sending ObjectID in body
 router.post('/:task_id/givenClaps', (req, res, next) => { 
   const task_id = ObjectID(req.params.task_id);
   const { user_id } = req.body;
@@ -384,9 +383,11 @@ router.delete('/:taskID/subTasks/:subTaskID', (req, res, next) => {
 });
 
 router.post('/:task_id/mangoTransactions', (req, res, next) => { 
-  // TODO: CHECK TASK IS NOT DONE BEFORE ADDING MANGO TRASACTIONS
   const task_id = ObjectID(req.params.task_id);
   const { user_id, mangoCount } = req.body; 
+  if (mangoCount > TRANSACTION_LIMITS.maxMangos || mangoCount < TRANSACTION_LIMITS.minMangos) {
+    throw new Error("mangoCount is not within a valid range");
+  }
   const newMangoTransaction = {
     user_id,
     mangoCount, 
