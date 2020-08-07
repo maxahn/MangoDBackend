@@ -205,7 +205,6 @@ router.post('/feed/deductMango', (req, res, next) => {
   });
 });
 
-// history
 router.post('/:_id/mangoTransactions', (req, res, next) => {
   const { _id } = req.params;
   const {
@@ -219,7 +218,6 @@ router.post('/:_id/mangoTransactions', (req, res, next) => {
         _id: task_id 
       }).then(result => {
         const { mangoTransactions } = result;
-        // const mangosGained = mangoTransactions.reduce((acc, curr) => acc + curr);
         return users.updateOne(
           { _id: _id },
           { 
